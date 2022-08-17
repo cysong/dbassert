@@ -19,6 +19,7 @@ import java.sql.SQLException;
 public class SqliteTest {
     private static final String dbFile = "sqlite.db";
     private static final String sqlFile = "sqlite.sql";
+    private static final String tableName = "person";
     private Connection conn;
 
     @Before
@@ -33,9 +34,9 @@ public class SqliteTest {
     public void testNotRetry() {
         DbAssert.create(conn)
                 .retry(false)
-                .table("customer")
+                .table(tableName)
                 .where("id", 1)
-                .col("name").as("alias").isEqual("alice")
+                .col("name").as("person name").isEqual("alice")
                 .countEquals(1)
                 .run();
     }
@@ -45,26 +46,37 @@ public class SqliteTest {
         new Thread(() -> {
             Utils.sleep(10000);
             try {
-                conn.prepareStatement("update customer set name = 'alice_new' where id=1").executeUpdate();
+                conn.prepareStatement("update person set name = 'anson' where id=1").executeUpdate();
             } catch (SQLException e) {
                 e.printStackTrace();
             }
         }).start();
         long start = System.currentTimeMillis();
         DbAssert.create(conn)
-                .retry(true)
-                .table("customer")
+                .table(tableName)
                 .where("id", 1)
-                .col("name").as("alias").isEqual("alice_new")
+                .col("name").as("person name").isEqual("anson")
                 .run();
         Assert.assertTrue(System.currentTimeMillis() - start > 10000);
     }
 
     @Test
-    public void testRows() throws SQLException {
-        long totalRows = getTotalRowsOfTable("customer");
+    public void testDetailAssertion() {
         DbAssert.create(conn)
-                .table("customer")
+                .table(tableName)
+                .where("id", 1)
+                .col("name").as("person name").isNotNull().contains("a").isEqual("alice")
+                .col("age").isEqual(10).isEqual("10").isNotEqual("9")
+                .col("weight").isEqual(40.0).isEqual("40.0000").isEqual("40.0d")
+                .col("height").isEqual("94.5").isEqual("94.5f")
+                .run();
+    }
+
+    @Test
+    public void testRowsAssertion() throws SQLException {
+        long totalRows = getTotalRowsOfTable(tableName);
+        DbAssert.create(conn)
+                .table(tableName)
                 .rowsEqual(totalRows)
                 .rowsGreaterThan(totalRows - 1)
                 .rowsGreaterThanOrEqual(totalRows)
@@ -78,9 +90,9 @@ public class SqliteTest {
     }
 
     @Test
-    public void testAggregate() {
+    public void testAggregateAssertion() {
         DbAssert.create(conn)
-                .table("customer")
+                .table(tableName)
                 .where("name", "bob")
                 .col("name")
                 .countEquals(1)
@@ -108,7 +120,7 @@ public class SqliteTest {
         SqlUtils.loadSqlScript(conn, is);
         is.close();
 
-        System.out.println("total customer rows: " + getTotalRowsOfTable("customer"));
+        System.out.println("total person rows: " + getTotalRowsOfTable(tableName));
     }
 
     private long getTotalRowsOfTable(String tableName) throws SQLException {
