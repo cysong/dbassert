@@ -22,9 +22,9 @@ public class ConditionTester {
             case NOT_NULL:
                 return actual != null;
             case IS_TRUE:
-                return actual == null ? false : isTrue(actual);
+                return isTrue(actual);
             case IS_FALSE:
-                return actual == null ? false : !isTrue(actual);
+                return isFalse(actual);
             case LESS_THAN:
                 return compare(actual, expected) < 0;
             case LESS_THAN_OR_EQUAL:
@@ -62,30 +62,34 @@ public class ConditionTester {
                 return -1;
             }
         }
-        return compareNotNull(actual, expected);
+        return compare0(actual, expected);
     }
 
-    public static int compareNotNull(Object actual, Object expected) {
+    private static int compare0(Object actual, Object expected) {
         assert actual != null;
         assert expected != null;
         Class clazz = actual.getClass();
-        switch (clazz.getName()) {
-            case "java.lang.String":
-                return ((String) actual).compareTo(Converter.toString(expected));
-            case "java.lang.Integer":
-                return Integer.compare((Integer) actual, Converter.toInteger(expected));
-            case "java.lang.Long":
-                return Long.compare((Long) actual, Converter.toLong(expected));
-            case "java.lang.Short":
-                return Short.compare((Short) actual, Converter.toShort(expected));
-            case "java.lang.Float":
-                return Float.compare((Float) actual, Converter.toFloat(expected));
-            case "java.lang.Double":
-                return Double.compare((Double) actual, Converter.toDouble(expected));
-            case "java.lang.Boolean":
-                return Boolean.compare((Boolean) actual, Converter.toBoolean(expected));
-            default:
-                throw new IllegalArgumentException("Unsupported data type:" + clazz.getName());
+        try {
+            switch (clazz.getName()) {
+                case "java.lang.String":
+                    return ((String) actual).compareTo(Converter.toString(expected));
+                case "java.lang.Integer":
+                    return Integer.compare((Integer) actual, Converter.toInteger(expected));
+                case "java.lang.Long":
+                    return Long.compare((Long) actual, Converter.toLong(expected));
+                case "java.lang.Short":
+                    return Short.compare((Short) actual, Converter.toShort(expected));
+                case "java.lang.Float":
+                    return Float.compare((Float) actual, Converter.toFloat(expected));
+                case "java.lang.Double":
+                    return Double.compare((Double) actual, Converter.toDouble(expected));
+                case "java.lang.Boolean":
+                    return Boolean.compare((Boolean) actual, Converter.toBoolean(expected));
+                default:
+                    throw new IllegalArgumentException("Unsupported data type:" + clazz.getName());
+            }
+        } catch (NumberFormatException e) {
+            throw new ClassCastException(String.format("Expected value [%s] cannot be cast to %s", expected, clazz));
         }
     }
 
@@ -93,15 +97,33 @@ public class ConditionTester {
         if (actual == null) {
             return false;
         }
-        if (actual instanceof Integer) {
-            return (Integer) actual != 0;
-        } else if (actual instanceof Long) {
-            return (Long) actual != 0;
-        } else if (actual instanceof String) {
-            return Boolean.parseBoolean((String) actual);
-        } else {
-            return Boolean.parseBoolean(actual.toString());
+        if (actual instanceof Boolean) {
+            return (Boolean) actual;
         }
+        if (actual instanceof Integer) {
+            return (Integer) actual == 1;
+        }
+        if (actual instanceof Long) {
+            return (Long) actual == 1;
+        }
+        String s = String.valueOf(actual);
+        return s.equalsIgnoreCase("true") || s.equals("1");
+    }
+
+    public static boolean isFalse(Object actual) {
+        if (actual == null) {
+            return false;
+        }
+        if (actual instanceof Boolean) {
+            return (Boolean) actual;
+        }
+        if (actual instanceof Integer) {
+            return (Integer) actual == 0;
+        } else if (actual instanceof Long) {
+            return (Long) actual == 0;
+        }
+        String s = String.valueOf(actual);
+        return s.equalsIgnoreCase("false") || s.equals("0");
     }
 
     public static boolean in(Object actual, Object expected) {
@@ -141,14 +163,14 @@ public class ConditionTester {
         }
         boolean result = true;
         if (boundary.isExcludeMin()) {
-            result = result && compareNotNull(actual, boundary.getMin()) > 0;
+            result = result && compare0(actual, boundary.getMin()) > 0;
         } else {
-            result = result && compareNotNull(actual, boundary.getMin()) >= 0;
+            result = result && compare0(actual, boundary.getMin()) >= 0;
         }
         if (boundary.isExcludeMax()) {
-            result = result && compareNotNull(actual, boundary.getMax()) < 0;
+            result = result && compare0(actual, boundary.getMax()) < 0;
         } else {
-            result = result && compareNotNull(actual, boundary.getMax()) <= 0;
+            result = result && compare0(actual, boundary.getMax()) <= 0;
         }
         return result;
     }

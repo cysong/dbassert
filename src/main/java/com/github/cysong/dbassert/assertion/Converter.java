@@ -1,7 +1,8 @@
 package com.github.cysong.dbassert.assertion;
 
 
-import com.github.cysong.dbassert.exception.DataFormatException;
+import java.math.BigDecimal;
+import java.math.BigInteger;
 
 public class Converter {
 
@@ -9,8 +10,20 @@ public class Converter {
         if (value == null) {
             return null;
         }
-        if (value instanceof Number) {
-            return ((Number) value).intValue();
+        if (value instanceof Integer) {
+            return (Integer) value;
+        }
+        if (value instanceof Long) {
+            Long l = (Long) value;
+            if (l >= Integer.MIN_VALUE && l <= Integer.MAX_VALUE) {
+                return l.intValue();
+            }
+            throw new NumberFormatException();
+        }
+        if (value instanceof Short || value instanceof Float || value instanceof Double) {
+            if (((Number) value).intValue() == ((Number) value).doubleValue()) {
+                return ((Number) value).intValue();
+            }
         }
         return Integer.valueOf(String.valueOf(value));
     }
@@ -19,8 +32,16 @@ public class Converter {
         if (value == null) {
             return null;
         }
-        if (value instanceof Number) {
-            return ((Number) value).longValue();
+        if (value instanceof Long) {
+            return (Long) value;
+        }
+        if (value instanceof Integer) {
+            return ((Integer) value).longValue();
+        }
+        if (value instanceof Short || value instanceof Float || value instanceof Double) {
+            if (((Number) value).longValue() == ((Number) value).doubleValue()) {
+                return ((Number) value).longValue();
+            }
         }
         return Long.valueOf(String.valueOf(value));
     }
@@ -28,6 +49,12 @@ public class Converter {
     public static Double toDouble(Object value) {
         if (value == null) {
             return null;
+        }
+        if (value instanceof Long) {
+            if (((Long) value).longValue() == ((Long) value).doubleValue()) {
+                return ((Long) value).doubleValue();
+            }
+            throw new NumberFormatException();
         }
         if (value instanceof Number) {
             return ((Number) value).doubleValue();
@@ -64,7 +91,7 @@ public class Converter {
             if (i == 1 || i == 0) {
                 return i == 1;
             }
-            throw new DataFormatException("Data can not be convert to boolean:" + value);
+            throw new NumberFormatException();
         }
         String s = String.valueOf(value);
         if (s.equalsIgnoreCase("true") || s.equals("1")) {
@@ -72,7 +99,51 @@ public class Converter {
         } else if (s.equalsIgnoreCase("false") || s.equals("0")) {
             return false;
         }
-        throw new DataFormatException("Data can not be convert to boolean:" + value);
+        throw new NumberFormatException();
+    }
+
+    public static BigInteger toBigInteger(Object value) {
+        if (value == null) {
+            return null;
+        }
+        if (value instanceof BigInteger) {
+            return (BigInteger) value;
+        }
+        if (value instanceof Integer) {
+            return BigInteger.valueOf((Integer) value);
+        }
+        if (value instanceof Long) {
+            return BigInteger.valueOf((Long) value);
+        }
+        return new BigInteger(String.valueOf(value));
+    }
+
+    public static BigDecimal toBigDecimal(Object value) {
+        if (value == null) {
+            return null;
+        }
+        if (value instanceof BigDecimal) {
+            return (BigDecimal) value;
+        }
+        if (value instanceof Integer) {
+            return BigDecimal.valueOf((Integer) value);
+        }
+        if (value instanceof Long) {
+            return BigDecimal.valueOf((Long) value);
+        }
+        if (value instanceof Short) {
+            return BigDecimal.valueOf((Short) value);
+        }
+        if (value instanceof Float) {
+            return BigDecimal.valueOf((Float) value);
+        }
+        if (value instanceof Double) {
+            return BigDecimal.valueOf((Double) value);
+        }
+        if (value instanceof BigInteger) {
+            return new BigDecimal((BigInteger) value);
+        }
+        return new BigDecimal(String.valueOf(value));
     }
 
     public static String toString(Object value) {
