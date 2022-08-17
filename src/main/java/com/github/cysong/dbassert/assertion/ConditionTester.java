@@ -71,29 +71,19 @@ public class ConditionTester {
         Class clazz = actual.getClass();
         switch (clazz.getName()) {
             case "java.lang.String":
-                return ((String) actual).compareTo((String) expected);
+                return ((String) actual).compareTo(Converter.toString(expected));
             case "java.lang.Integer":
-                Integer properExp = null;
-                if (expected != null) {
-                    if (expected instanceof Integer) {
-                        properExp = (Integer) expected;
-                    } else if (expected instanceof Long) {
-                        properExp = ((Long) expected).intValue();
-                    } else {
-                        properExp = Integer.valueOf(expected.toString());
-                    }
-                }
-                return Integer.compare((Integer) actual, properExp);
+                return Integer.compare((Integer) actual, Converter.toInteger(expected));
             case "java.lang.Long":
-                return Long.compare((Long) actual, (Long) expected);
+                return Long.compare((Long) actual, Converter.toLong(expected));
             case "java.lang.Short":
-                return Short.compare((Short) actual, (Short) expected);
+                return Short.compare((Short) actual, Converter.toShort(expected));
             case "java.lang.Float":
-                return Float.compare((Float) actual, (Float) expected);
+                return Float.compare((Float) actual, Converter.toFloat(expected));
             case "java.lang.Double":
-                return Double.compare((Double) actual, (Double) expected);
+                return Double.compare((Double) actual, Converter.toDouble(expected));
             case "java.lang.Boolean":
-                return Boolean.compare((Boolean) actual, (Boolean) expected);
+                return Boolean.compare((Boolean) actual, Converter.toBoolean(expected));
             default:
                 throw new IllegalArgumentException("Unsupported data type:" + clazz.getName());
         }
