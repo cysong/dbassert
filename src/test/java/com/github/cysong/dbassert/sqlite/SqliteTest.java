@@ -15,6 +15,7 @@ import java.sql.Connection;
 import java.sql.DriverManager;
 import java.sql.ResultSet;
 import java.sql.SQLException;
+import java.util.Arrays;
 
 public class SqliteTest {
     private static final String dbFile = "sqlite.db";
@@ -44,7 +45,7 @@ public class SqliteTest {
     @Test
     public void testRetry() {
         new Thread(() -> {
-            Utils.sleep(10000);
+            Utils.sleep(6000);
             try {
                 conn.prepareStatement("update person set name = 'anson' where id=1").executeUpdate();
             } catch (SQLException e) {
@@ -57,18 +58,77 @@ public class SqliteTest {
                 .where("id", 1)
                 .col("name").as("person name").isEqual("anson")
                 .run();
-        Assert.assertTrue(System.currentTimeMillis() - start > 10000);
+        Assert.assertTrue(System.currentTimeMillis() - start > 6000);
     }
 
     @Test
-    public void testDetailAssertion() {
+    public void testStringColumnAssertion() {
         DbAssert.create(conn)
                 .table(tableName)
                 .where("id", 1)
-                .col("name").as("person name").isNotNull().contains("a").isEqual("alice")
-                .col("age").isEqual(10).isEqual("10").isNotEqual("9")
-                .col("weight").isEqual(40.0).isEqual("40.0000").isEqual("40.0d")
-                .col("height").isEqual("94.5").isEqual("94.5f")
+                .col("name")
+                .as("person name")
+                .isNotNull()
+                .contains("a")
+                .isEqual("alice")
+                .isNotEqual("bob")
+                .run();
+    }
+
+    @Test
+    public void testIntegerColumnAssertion() {
+        DbAssert.create(conn)
+                .table(tableName)
+                .where("id", 1)
+                .col("age").isNotNull()
+                .isEqual(10)
+                .isEqual(10l)
+                .isEqual(10.0)
+                .isEqual("10")
+                .isNotEqual("9")
+                .run();
+    }
+
+    @Test
+    public void testFloatColumnAssertion() {
+        DbAssert.create(conn)
+                .table(tableName)
+                .where("id", 1)
+                .col("weight").isNotNull()
+                .isEqual(40)
+                .isEqual(40l)
+                .isEqual(40.0f)
+                .isEqual(40.0d)
+                .isEqual("40.0000")
+                .isEqual("40.0d")
+                .isNotEqual(4)
+                .run();
+    }
+
+    @Test
+    public void testDoubleColumnAssertion() {
+        DbAssert.create(conn)
+                .table(tableName)
+                .where("id", 1)
+                .col("height")
+                .isNotNull()
+                .isEqual(94)
+                .isEqual(94l)
+                .isEqual(94.0)
+                .isEqual(94.0d)
+                .isEqual("94.0")
+                .isEqual("94.0d")
+                .run();
+    }
+
+    @Test
+    public void testInCondition() {
+        DbAssert.create(conn)
+                .table(tableName)
+                .where("id", 1)
+                .col("gender")
+                .in(Arrays.asList("M", "F"))
+                .notIn(Arrays.asList(1, 0))
                 .run();
     }
 
@@ -86,6 +146,47 @@ public class SqliteTest {
                 .rowsBetween(totalRows - 1, totalRows + 1)
                 .rowsBetween(totalRows, false, totalRows + 1, true)
                 .rowsBetween(totalRows - 1, true, totalRows, false)
+                .run();
+    }
+
+    @Test
+    public void testCountAssertion() {
+        DbAssert.create(conn)
+                .table(tableName)
+                .where("id", 1)
+                .col("gender")
+                .countEquals(1)
+                .run();
+    }
+
+    @Test
+    public void testDistinctCountAssertion() {
+        DbAssert.create(conn)
+                .table(tableName)
+                .col("gender")
+                .distinctCountEqual(2)
+                .run();
+    }
+
+    @Test
+    public void testSuccessIfNotFound() {
+        DbAssert.create(conn)
+                .table(tableName)
+                .retry(false)
+                .failIfNotFound(false)
+                .where("id", 9999)
+                .col("name").isEqual("unknown")
+                .run();
+    }
+
+    @Test(expected = AssertionError.class)
+    public void testFailIfNotFound() {
+        DbAssert.create(conn)
+                .table(tableName)
+                .retry(false)
+                .failIfNotFound(true)
+                .where("id", 9999)
+                .col("name").isEqual("unknown")
                 .run();
     }
 
@@ -120,7 +221,7 @@ public class SqliteTest {
         SqlUtils.loadSqlScript(conn, is);
         is.close();
 
-        System.out.println("total person rows: " + getTotalRowsOfTable(tableName));
+        System.out.println("table person total rows: " + getTotalRowsOfTable(tableName));
     }
 
     private long getTotalRowsOfTable(String tableName) throws SQLException {
