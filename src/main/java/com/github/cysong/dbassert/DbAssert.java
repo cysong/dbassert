@@ -4,6 +4,7 @@ package com.github.cysong.dbassert;
 import com.github.cysong.dbassert.assertion.Assertion;
 import com.github.cysong.dbassert.assertion.AssertionExecutor;
 import com.github.cysong.dbassert.constant.*;
+import com.github.cysong.dbassert.exception.ConfigurationException;
 import com.github.cysong.dbassert.expression.AggregateCondition;
 import com.github.cysong.dbassert.expression.Boundary;
 import com.github.cysong.dbassert.expression.Condition;
@@ -436,14 +437,16 @@ public class DbAssert {
 
     public void run() {
         flushCurrentObject(null);
-        if (assertion.getTableName() == null)
-            if (Utils.isEmpty(assertion.getVerifies()) && Utils.isEmpty(assertion.getRowVerifies())) {
-                throw new IllegalArgumentException("At least one verify condition required");
-            }
+        if (assertion.getTableName() == null) {
+            throw new ConfigurationException("Table name can not be null");
+        }
+        if (Utils.isEmpty(assertion.getVerifies()) && Utils.isEmpty(assertion.getRowVerifies())) {
+            throw new ConfigurationException("At least one verify condition required");
+        }
         try {
             AssertionExecutor.create(this.assertion).run();
         } catch (SQLException e) {
-            throw new RuntimeException("Assertion error:" + e.getMessage(), e);
+            throw new RuntimeException("Assertion error: " + e.getMessage(), e);
         }
     }
 
