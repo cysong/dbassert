@@ -34,7 +34,7 @@ public class ConditionTester {
             case GREATER_THAN_OR_EQUAL:
                 return compare(actual, expected) >= 0;
             case BETWEEN:
-                return between(actual, (Boundary) expected);
+                return between(actual, (Boundary<?>) expected);
             case IN:
                 return in(actual, expected);
             case NOT_IN:
@@ -68,7 +68,7 @@ public class ConditionTester {
     private static int compare0(Object actual, Object expected) {
         assert actual != null;
         assert expected != null;
-        Class clazz = actual.getClass();
+        Class<?> clazz = actual.getClass();
         try {
             switch (clazz.getName()) {
                 case "java.lang.String":
@@ -127,14 +127,14 @@ public class ConditionTester {
     }
 
     public static boolean in(Object actual, Object expected) {
-        Collection cc = actual instanceof Collection ? (Collection) actual : Arrays.asList(actual);
+        Collection<?> cc = actual instanceof Collection ? (Collection<?>) actual : Arrays.asList(actual);
         for (Object item : cc) {
             boolean in = false;
-            Iterator eit = ((Iterable) expected).iterator();
+            Iterator<?> eit = ((Iterable<?>) expected).iterator();
             while (eit.hasNext()) {
                 if (Objects.equals(item, eit.next())) {
                     in = true;
-                    continue;
+                    break;
                 }
             }
             if (!in) {
@@ -145,9 +145,9 @@ public class ConditionTester {
     }
 
     public static boolean notIn(Object actual, Object expected) {
-        Collection cc = actual instanceof Collection ? (Collection) actual : Arrays.asList(actual);
+        Collection<?> cc = actual instanceof Collection ? (Collection<?>) actual : Arrays.asList(actual);
         for (Object item : cc) {
-            Iterator eit = ((Iterable) expected).iterator();
+            Iterator<?> eit = ((Iterable<?>) expected).iterator();
             while (eit.hasNext()) {
                 if (Objects.equals(item, eit.next())) {
                     return false;
@@ -157,20 +157,20 @@ public class ConditionTester {
         return true;
     }
 
-    public static boolean between(Object actual, Boundary boundary) {
+    public static boolean between(Object actual, Boundary<?> boundary) {
         if (actual == null) {
             return false;
         }
         boolean result = true;
         if (boundary.isExcludeMin()) {
-            result = result && compare0(actual, boundary.getMin()) > 0;
+            result = result && (compare0(actual, boundary.getMin()) > 0);
         } else {
-            result = result && compare0(actual, boundary.getMin()) >= 0;
+            result = result && (compare0(actual, boundary.getMin()) >= 0);
         }
         if (boundary.isExcludeMax()) {
-            result = result && compare0(actual, boundary.getMax()) < 0;
+            result = result && (compare0(actual, boundary.getMax()) < 0);
         } else {
-            result = result && compare0(actual, boundary.getMax()) <= 0;
+            result = result && (compare0(actual, boundary.getMax()) <= 0);
         }
         return result;
     }
@@ -182,8 +182,8 @@ public class ConditionTester {
         if (actual instanceof String) {
             return ((String) actual).contains((String) expected);
         } else if (actual instanceof Collection) {
-            Collection coll = (Collection) actual;
-            Iterator it = ((Iterable) expected).iterator();
+            Collection<?> coll = (Collection<?>) actual;
+            Iterator<?> it = ((Iterable<?>) expected).iterator();
             while (it.hasNext()) {
                 if (!coll.contains(it.next())) {
                     return false;
@@ -202,8 +202,8 @@ public class ConditionTester {
         if (actual instanceof String) {
             return !((String) actual).contains((String) expected);
         } else if (actual instanceof Collection) {
-            Collection coll = (Collection) actual;
-            Iterator it = ((Iterable) expected).iterator();
+            Collection<?> coll = (Collection<?>) actual;
+            Iterator<?> it = ((Iterable<?>) expected).iterator();
             while (it.hasNext()) {
                 if (coll.contains(it.next())) {
                     return false;
@@ -216,7 +216,7 @@ public class ConditionTester {
     }
 
     public static boolean matches(Object actual, Object expected) {
-        Predicate predicate = (Predicate) expected;
+        Predicate<Object> predicate = (Predicate<Object>) expected;
         if (actual instanceof Collection) {
             Collection collection = (Collection) actual;
             return collection.stream().allMatch(predicate);
@@ -226,7 +226,7 @@ public class ConditionTester {
     }
 
     public static boolean notMatch(Object actual, Object expected) {
-        Predicate predicate = (Predicate) expected;
+        Predicate<Object> predicate = (Predicate<Object>) expected;
         if (actual instanceof Collection) {
             Collection collection = (Collection) actual;
             return !collection.stream().anyMatch(predicate);
@@ -236,9 +236,9 @@ public class ConditionTester {
     }
 
     public static boolean anyMatch(Object actual, Object expected) {
-        Predicate predicate = (Predicate) expected;
+        Predicate<Object> predicate = (Predicate<Object>) expected;
         if (actual instanceof Collection) {
-            Collection collection = (Collection) actual;
+            Collection<?> collection = (Collection<?>) actual;
             return collection.stream().anyMatch(predicate);
         } else {
             return predicate.test(actual);

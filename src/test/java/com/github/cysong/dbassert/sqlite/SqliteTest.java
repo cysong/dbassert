@@ -47,7 +47,7 @@ public class SqliteTest {
         new Thread(() -> {
             Utils.sleep(6000);
             try {
-                conn.prepareStatement("update person set name = 'cale' where id=3").executeUpdate();
+                conn.prepareStatement("update person set name = 'cole' where id=3").executeUpdate();
             } catch (SQLException e) {
                 e.printStackTrace();
             }
@@ -56,7 +56,7 @@ public class SqliteTest {
         DbAssert.create(conn)
                 .table(tableName)
                 .where("id", 3)
-                .col("name").as("person name").isEqual("cale")
+                .col("name").as("person name").isEqual("cole")
                 .run();
         Assert.assertTrue(System.currentTimeMillis() - start > 6000);
     }
@@ -82,7 +82,7 @@ public class SqliteTest {
                 .where("id", 1)
                 .col("age").isNotNull()
                 .isEqual(10)
-                .isEqual(10l)
+                .isEqual(10L)
                 .isEqual(10.0)
                 .isEqual("10")
                 .isNotEqual("9")
@@ -96,7 +96,7 @@ public class SqliteTest {
                 .where("id", 1)
                 .col("weight").isNotNull()
                 .isEqual(40)
-                .isEqual(40l)
+                .isEqual(40L)
                 .isEqual(40.0f)
                 .isEqual(40.0d)
                 .isEqual("40.0000")
@@ -113,7 +113,7 @@ public class SqliteTest {
                 .col("height")
                 .isNotNull()
                 .isEqual(94)
-                .isEqual(94l)
+                .isEqual(94L)
                 .isEqual(94.0)
                 .isEqual(94.0d)
                 .isEqual("94.0")

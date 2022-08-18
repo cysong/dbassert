@@ -19,7 +19,7 @@ import java.util.logging.Logger;
 
 public class AssertionExecutor {
     private static final Logger LOG = Logger.getLogger(AssertionExecutor.class.getName());
-    private Assertion assertion;
+    private final Assertion assertion;
 
     public static AssertionExecutor create(Assertion assertion) {
         return new AssertionExecutor(assertion);
@@ -179,9 +179,10 @@ public class AssertionExecutor {
     }
 
     @FunctionalInterface
-    private static interface MessageBuilder {
+    private interface MessageBuilder {
 
         String build();
+        
     }
 
 }
