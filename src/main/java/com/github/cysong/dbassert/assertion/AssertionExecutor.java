@@ -36,6 +36,8 @@ public class AssertionExecutor {
         SqlBuilder sqlBuilder = SqlBuilderFactory.getSqlBuilder(md.getDatabaseProductName());
         SqlResult result = sqlBuilder.build(assertion);
 
+        printSql(result);
+
         if (this.assertion.getDelay() > 0) {
             Utils.sleep(this.assertion.getDelay());
         }
@@ -151,6 +153,16 @@ public class AssertionExecutor {
             throw new AssertionError(messageBuilder.build());
         } else {
             LOG.info(messageBuilder.build());
+        }
+    }
+
+    private void printSql(SqlResult sqlResult) {
+        System.out.println("==================== sql ====================");
+        if (sqlResult.getDetailSql() != null) {
+            System.out.println(sqlResult.getDetailSql());
+        }
+        if (sqlResult.getAggregateSql() != null) {
+            System.out.println(sqlResult.getAggregateSql());
         }
     }
 
