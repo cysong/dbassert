@@ -11,4 +11,4 @@ create table person
 insert into person(id, name, gender, age, weight, height)
 values (1, "alice", 'F', 10, 40.0, 94.0),
        (2, "bob", 'M', 20, 55.5, null),
-       (3, "cal", 'M', null, null, 172.4);
+       (3, "carl", 'M', null, null, 172.4);

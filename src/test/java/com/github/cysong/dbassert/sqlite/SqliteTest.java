@@ -3,9 +3,9 @@ package com.github.cysong.dbassert.sqlite;
 import com.github.cysong.dbassert.DbAssert;
 import com.github.cysong.dbassert.utitls.SqlUtils;
 import com.github.cysong.dbassert.utitls.Utils;
-import org.junit.After;
+import org.junit.AfterClass;
 import org.junit.Assert;
-import org.junit.Before;
+import org.junit.BeforeClass;
 import org.junit.Test;
 
 import java.io.File;
@@ -21,14 +21,14 @@ public class SqliteTest {
     private static final String dbFile = "sqlite.db";
     private static final String sqlFile = "sqlite.sql";
     private static final String tableName = "person";
-    private Connection conn;
+    private static Connection conn;
 
-    @Before
-    public void setup() throws SQLException, IOException {
+    @BeforeClass
+    public static void setup() throws SQLException, IOException {
         String url = "jdbc:sqlite:" + dbFile;
         conn = DriverManager.getConnection(url);
 
-        this.initDb();
+        initDb();
     }
 
     @Test(timeout = 1000)
@@ -47,7 +47,7 @@ public class SqliteTest {
         new Thread(() -> {
             Utils.sleep(6000);
             try {
-                conn.prepareStatement("update person set name = 'anson' where id=1").executeUpdate();
+                conn.prepareStatement("update person set name = 'cale' where id=3").executeUpdate();
             } catch (SQLException e) {
                 e.printStackTrace();
             }
@@ -55,8 +55,8 @@ public class SqliteTest {
         long start = System.currentTimeMillis();
         DbAssert.create(conn)
                 .table(tableName)
-                .where("id", 1)
-                .col("name").as("person name").isEqual("anson")
+                .where("id", 3)
+                .col("name").as("person name").isEqual("cale")
                 .run();
         Assert.assertTrue(System.currentTimeMillis() - start > 6000);
     }
@@ -202,8 +202,8 @@ public class SqliteTest {
                 .countBetween(0, 2);
     }
 
-    @After
-    public void tearDown() {
+    @AfterClass
+    public static void tearDown() {
         try {
             conn.close();
         } catch (SQLException e) {
@@ -215,8 +215,8 @@ public class SqliteTest {
         }
     }
 
-    private void initDb() throws SQLException, IOException {
-        InputStream is = getClass().getClassLoader().getResourceAsStream(sqlFile);
+    private static void initDb() throws SQLException, IOException {
+        InputStream is = Thread.currentThread().getContextClassLoader().getResourceAsStream(sqlFile);
         assert is != null;
         SqlUtils.loadSqlScript(conn, is);
         is.close();
@@ -224,7 +224,7 @@ public class SqliteTest {
         System.out.println("table person total rows: " + getTotalRowsOfTable(tableName));
     }
 
-    private long getTotalRowsOfTable(String tableName) throws SQLException {
+    private static long getTotalRowsOfTable(String tableName) throws SQLException {
         ResultSet rs = conn.prepareStatement("select count(*) count from " + tableName).executeQuery();
         long count = 0;
         while (rs.next()) {
