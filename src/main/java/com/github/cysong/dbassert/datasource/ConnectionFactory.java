@@ -6,4 +6,6 @@ public interface ConnectionFactory {
 
     Connection getConnectionByDbKey(String dbKey);
 
+    void destroy();
+
 }

@@ -3,6 +3,7 @@ package com.github.cysong.dbassert.option;
 import com.github.cysong.dbassert.constant.Constants;
 import com.github.cysong.dbassert.datasource.ConnectionFactory;
 import com.github.cysong.dbassert.datasource.DefaultConnectionFactory;
+import com.github.cysong.dbassert.utitls.Utils;
 
 public class DbAssertOptions {
     private static final DbAssertOptions global = new DbAssertOptions();
@@ -99,6 +100,7 @@ public class DbAssertOptions {
     }
 
     public DbAssertOptions databaseFile(String databaseFile) {
+        assert Utils.isNotBlank(databaseFile);
         this.databaseFile = databaseFile;
         return this;
     }

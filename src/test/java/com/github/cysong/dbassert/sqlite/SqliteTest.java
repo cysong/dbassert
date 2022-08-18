@@ -28,7 +28,7 @@ public class SqliteTest {
         String url = "jdbc:sqlite:" + dbFile;
         conn = DriverManager.getConnection(url);
 
-        initDb();
+        initDb(conn);
     }
 
     @Test(timeout = 1000)
@@ -215,12 +215,11 @@ public class SqliteTest {
         }
     }
 
-    private static void initDb() throws SQLException, IOException {
+    public static void initDb(Connection conn) throws SQLException, IOException {
         InputStream is = Thread.currentThread().getContextClassLoader().getResourceAsStream(sqlFile);
         assert is != null;
         SqlUtils.loadSqlScript(conn, is);
         is.close();
-
         System.out.println("table person total rows: " + getTotalRowsOfTable(tableName));
     }
 
