@@ -4,11 +4,11 @@ import com.github.cysong.dbassert.constant.Comparator;
 
 import java.util.Optional;
 
-public class Condition<T> {
+public class Condition {
     protected String columnName;
     protected String alias;
     protected Comparator comparator;
-    protected T expected;
+    protected Object expected;
 
     public static Condition create(String columnName, Comparator comparator) {
         return Condition.create(columnName, comparator, null);
@@ -18,7 +18,7 @@ public class Condition<T> {
         return new Condition(columnName, comparator, expected);
     }
 
-    protected Condition(String columnName, Comparator comparator, T expected) {
+    protected Condition(String columnName, Comparator comparator, Object expected) {
         this.columnName = columnName;
         this.comparator = comparator;
         this.expected = expected;

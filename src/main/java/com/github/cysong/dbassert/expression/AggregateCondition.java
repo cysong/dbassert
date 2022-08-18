@@ -3,7 +3,7 @@ package com.github.cysong.dbassert.expression;
 import com.github.cysong.dbassert.constant.Aggregate;
 import com.github.cysong.dbassert.constant.Comparator;
 
-public class AggregateCondition<T> extends Condition {
+public class AggregateCondition extends Condition {
     private Aggregate aggregate;
 
     public static AggregateCondition create(Aggregate aggregate, String columnName, Comparator comparator, Object expected) {
