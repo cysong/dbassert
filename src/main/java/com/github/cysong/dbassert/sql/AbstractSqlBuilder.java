@@ -12,10 +12,15 @@ public abstract class AbstractSqlBuilder implements SqlBuilder {
     protected Assertion assertion;
     protected SqlResult result;
 
-    AbstractSqlBuilder(Assertion assertion) {
+    public SqlResult build(Assertion assertion) {
         this.assertion = assertion;
         this.result = SqlResult.create();
+        parseSelectColumns();
+        buildSql();
+        return result;
     }
+
+    protected abstract void buildSql();
 
     protected String getFullTableName() {
         return assertion.getDatabase() == null ? assertion.getTableName() : assertion.getDatabase() + "." + assertion.getTableName();

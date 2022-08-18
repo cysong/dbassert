@@ -4,11 +4,13 @@ import com.github.cysong.dbassert.constant.Aggregate;
 import com.github.cysong.dbassert.constant.Constants;
 import com.github.cysong.dbassert.expression.AggregateCondition;
 import com.github.cysong.dbassert.expression.Condition;
-import com.github.cysong.dbassert.sql.MysqlBuilder;
 import com.github.cysong.dbassert.sql.SqlBuilder;
+import com.github.cysong.dbassert.sql.SqlBuilderFactory;
 import com.github.cysong.dbassert.sql.SqlResult;
 import com.github.cysong.dbassert.utitls.Utils;
 
+import java.sql.Connection;
+import java.sql.DatabaseMetaData;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.List;
@@ -28,8 +30,11 @@ public class AssertionExecutor {
     }
 
     public void run() throws SQLException {
-        SqlBuilder sqlBuilder = new MysqlBuilder(this.assertion);
-        SqlResult result = sqlBuilder.build();
+        Connection conn = assertion.getConn();
+        DatabaseMetaData md = conn.getMetaData();
+
+        SqlBuilder sqlBuilder = SqlBuilderFactory.getSqlBuilder(md.getDatabaseProductName());
+        SqlResult result = sqlBuilder.build(assertion);
 
         if (this.assertion.getDelay() > 0) {
             Utils.sleep(this.assertion.getDelay());

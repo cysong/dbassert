@@ -1,6 +1,5 @@
 package com.github.cysong.dbassert.sql;
 
-import com.github.cysong.dbassert.assertion.Assertion;
 import com.github.cysong.dbassert.constant.Constants;
 import com.github.cysong.dbassert.expression.Condition;
 import com.github.cysong.dbassert.expression.Order;
@@ -8,13 +7,7 @@ import com.github.cysong.dbassert.utitls.Utils;
 
 public class MysqlBuilder extends AbstractSqlBuilder {
 
-    public MysqlBuilder(Assertion assertion) {
-        super(assertion);
-    }
-
-    @Override
-    public SqlResult build() {
-        parseSelectColumns();
+    protected void buildSql() {
         StringBuilder sb = new StringBuilder("select %s from ");
         sb.append(getFullTableName());
         sb.append(" where 1");
@@ -58,7 +51,11 @@ public class MysqlBuilder extends AbstractSqlBuilder {
             countExp.append(",").append(String.join(",", result.getWrapAggColumns()));
         }
         result.setAggregateSql(String.format(sql, countExp));
-        return result;
+    }
+
+    @Override
+    public boolean match(String dbProductName) {
+        return "MySql".equalsIgnoreCase(dbProductName) || "Sqlite".equalsIgnoreCase(dbProductName);
     }
 
     private String wrapConditionValue(Object value) {
