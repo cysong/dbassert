@@ -5,11 +5,13 @@ import com.github.cysong.dbassert.expression.Condition;
 import com.github.cysong.dbassert.expression.Order;
 import com.github.cysong.dbassert.utitls.Utils;
 
+import java.util.stream.Collectors;
+
 public class MysqlBuilder extends AbstractSqlBuilder {
 
     protected void buildSql() {
         StringBuilder sb = new StringBuilder("select %s from ");
-        sb.append(getFullTableName());
+        sb.append(getQuotedFullTableName());
         sb.append(" where 1");
         if (Utils.isNotBlank(assertion.getTextCondition())) {
             sb.append(" and ").append(assertion.getTextCondition());
@@ -43,7 +45,10 @@ public class MysqlBuilder extends AbstractSqlBuilder {
         String sql = sb.toString();
 
         if (Utils.isNotEmpty(result.getColumns())) {
-            result.setDetailSql(String.format(sql, String.join(",", result.getColumns().keySet())));
+            result.setDetailSql(String.format(sql,
+                    result.getColumns().keySet().stream().map(col -> quotedIdentifier(col))
+                            .collect(Collectors.joining(","))
+            ));
         }
         StringBuilder countExp = new StringBuilder("count(*) ");
         countExp.append(Constants.COUNT_ROWS_LABEL);
@@ -58,15 +63,11 @@ public class MysqlBuilder extends AbstractSqlBuilder {
         return "MySql".equalsIgnoreCase(dbProductName) || "Sqlite".equalsIgnoreCase(dbProductName);
     }
 
-    private String wrapConditionValue(Object value) {
-        if (value instanceof CharSequence) {
-            return "'" + value + "'";
-        }
-        return String.valueOf(value);
+    protected String getOpenQuote() {
+        return "`";
     }
 
-    private String wrapObjectName(String objectName) {
-        return "`" + objectName + "`";
+    protected String getCloseQuote() {
+        return "`";
     }
-
 }

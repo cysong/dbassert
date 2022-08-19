@@ -15,8 +15,8 @@ public class AggregateCondition extends Condition {
         this.aggregate = aggregate;
     }
 
-    public String getWrappedExpression() {
-        return aggregate.getWrappedExpression(columnName);
+    public String getWrappedStatement(String openQuote, String closeQuote) {
+        return aggregate.getWrappedStatement(columnName, openQuote, closeQuote);
     }
 
     public String getWrappedColumnLabel() {

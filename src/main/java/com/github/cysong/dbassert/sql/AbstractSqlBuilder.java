@@ -20,12 +20,6 @@ public abstract class AbstractSqlBuilder implements SqlBuilder {
         return result;
     }
 
-    protected abstract void buildSql();
-
-    protected String getFullTableName() {
-        return assertion.getDatabase() == null ? assertion.getTableName() : assertion.getDatabase() + "." + assertion.getTableName();
-    }
-
     protected void parseSelectColumns() {
         if (assertion.getVerifies() != null) {
             Map<String, List<Condition>> columns = assertion.getVerifies().stream().
@@ -39,10 +33,43 @@ public abstract class AbstractSqlBuilder implements SqlBuilder {
                     .collect(Collectors.groupingBy(exp -> exp.getColumnName()));
             List<String> wrapCountColumns = aggColumns.values().stream()
                     .flatMap(List::stream)
-                    .map(AggregateCondition::getWrappedExpression)
+                    .map(con -> getAggregateStatement(con))
                     .collect(Collectors.toList());
             result.setAggColumns(aggColumns);
             result.setWrapAggColumns(wrapCountColumns);
         }
+    }
+
+    protected abstract void buildSql();
+
+    protected String getAggregateStatement(AggregateCondition con) {
+        return con.getAggregate().getWrappedStatement(con.getColumnName(), getOpenQuote(), getCloseQuote());
+    }
+
+    protected String getFullTableName() {
+        return assertion.getDatabase() == null ? assertion.getTableName() : assertion.getDatabase() + "." + assertion.getTableName();
+    }
+
+    protected String getQuotedFullTableName() {
+        return assertion.getDatabase() == null ? quotedIdentifier(assertion.getTableName()) : quotedIdentifier(assertion.getDatabase()) + "." + (assertion.getTableName());
+    }
+
+    protected String quotedIdentifier(String identifier) {
+        return getOpenQuote() + identifier + getCloseQuote();
+    }
+
+    protected String getOpenQuote() {
+        return "";
+    }
+
+    protected String getCloseQuote() {
+        return "";
+    }
+
+    protected String wrapConditionValue(Object value) {
+        if (value instanceof CharSequence) {
+            return "'" + value + "'";
+        }
+        return String.valueOf(value);
     }
 }
