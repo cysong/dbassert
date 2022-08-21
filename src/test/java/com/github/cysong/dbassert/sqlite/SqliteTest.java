@@ -122,6 +122,22 @@ public class SqliteTest {
     }
 
     @Test
+    public void testBooleanColumnAssertion() {
+        DbAssert.create(conn)
+                .table(tableName)
+                .where("id", 1)
+                .col("adult")
+                .isFalse()
+                .run();
+        DbAssert.create(conn)
+                .table(tableName)
+                .where("id", 2)
+                .col("adult")
+                .isTrue()
+                .run();
+    }
+
+    @Test
     public void testInCondition() {
         DbAssert.create(conn)
                 .table(tableName)
