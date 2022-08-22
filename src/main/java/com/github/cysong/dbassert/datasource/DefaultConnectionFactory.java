@@ -2,6 +2,8 @@ package com.github.cysong.dbassert.datasource;
 
 import com.github.cysong.dbassert.exception.ConfigurationException;
 import com.github.cysong.dbassert.utitls.Utils;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.yaml.snakeyaml.Yaml;
 import org.yaml.snakeyaml.constructor.Constructor;
 import org.yaml.snakeyaml.nodes.Node;
@@ -15,10 +17,9 @@ import java.sql.SQLTimeoutException;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
-import java.util.logging.Logger;
 
 public class DefaultConnectionFactory implements ConnectionFactory {
-    private static final Logger log = Logger.getLogger(DefaultConnectionFactory.class.getName());
+    private static final Logger log = LoggerFactory.getLogger(DefaultConnectionFactory.class);
     private String databaseFile;
     private volatile boolean inited = false;
     private Map<String, DatabaseConfig> configMap;
@@ -44,7 +45,7 @@ public class DefaultConnectionFactory implements ConnectionFactory {
         if (isConnValid(conn)) {
             return conn;
         } else {
-            log.info(String.format("Database[%s] connect is not valid, reconnect", dbId));
+            log.info("Database[{}] connect is not valid, reconnect", dbId);
             conns.remove(dbId);
             initConnectionByDbId(dbId);
             conn = conns.get(dbId);
@@ -102,13 +103,13 @@ public class DefaultConnectionFactory implements ConnectionFactory {
                     if (count == 0) {
                         throw new ConfigurationException(String.format("Connect to database[%s] fail：%s,%s", dbId, dbConf.getUrl(), dbConf.getUsername()), e);
                     } else {
-                        log.info(String.format("The %s times connect to database[{%s}] fail, retry", (3 - count), dbId));
+                        log.info("The {} times connect to database[{}] fail, retry", (3 - count), dbId);
                     }
                 } catch (SQLException e) {
                     throw new ConfigurationException(String.format("database [%s] connect fail：%s,%s", dbId, dbConf.getUrl(), dbConf.getUsername()), e);
                 }
             }
-            log.info(String.format("Database[%s] connect success：%s,%s", dbId, dbConf.getUrl(), dbConf.getUsername()));
+            log.info("Database[{}] connect success：{},{}", dbId, dbConf.getUrl(), dbConf.getUsername());
             if (conns == null) {
                 conns = new ConcurrentHashMap<>();
             }
@@ -126,18 +127,22 @@ public class DefaultConnectionFactory implements ConnectionFactory {
 
     @Override
     public void destroy() {
-        for (Map.Entry<String, Connection> entry : conns.entrySet()) {
-            if (entry.getValue() != null) {
-                log.info("Database " + entry.getKey() + " is closing...");
-                try {
-                    entry.getValue().close();
-                } catch (SQLException e) {
+        if (conns != null && conns.size() > 0) {
+            for (Map.Entry<String, Connection> entry : conns.entrySet()) {
+                if (entry.getValue() != null) {
+                    log.info("Database {} is closing...", entry.getKey());
+                    try {
+                        entry.getValue().close();
+                    } catch (SQLException e) {
 
+                    }
                 }
             }
+            conns.clear();
         }
-        configMap.clear();
-        conns.clear();
+        if (configMap != null && configMap.size() > 0) {
+            configMap.clear();
+        }
     }
 
 

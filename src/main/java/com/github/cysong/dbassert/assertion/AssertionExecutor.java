@@ -8,6 +8,8 @@ import com.github.cysong.dbassert.sql.SqlBuilder;
 import com.github.cysong.dbassert.sql.SqlBuilderFactory;
 import com.github.cysong.dbassert.sql.SqlResult;
 import com.github.cysong.dbassert.utitls.Utils;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.sql.Connection;
 import java.sql.DatabaseMetaData;
@@ -15,10 +17,9 @@ import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.List;
 import java.util.Map;
-import java.util.logging.Logger;
 
 public class AssertionExecutor {
-    private static final Logger LOG = Logger.getLogger(AssertionExecutor.class.getName());
+    private static final Logger log = LoggerFactory.getLogger(AssertionExecutor.class);
     private final Assertion assertion;
 
     public static AssertionExecutor create(Assertion assertion) {
@@ -93,7 +94,7 @@ public class AssertionExecutor {
                 }
             }
 
-            LOG.info("Assert success");
+            log.info("Assert success");
             break;
         } while (loop++ < totalLoop);
     }
@@ -152,7 +153,7 @@ public class AssertionExecutor {
         if (isFinal) {
             throw new AssertionError(messageBuilder.build());
         } else {
-            LOG.info(messageBuilder.build());
+            log.info(messageBuilder.build());
         }
     }
 
@@ -169,12 +170,12 @@ public class AssertionExecutor {
     private void printRetryLog(int loopTimes) {
         if (assertion.isRetry()) {
             if (loopTimes > 1) {
-                LOG.info(String.format("Retry %s/%s...", loopTimes - 1, assertion.getRetryTimes()));
+                log.info("Retry {}/{}...", loopTimes - 1, assertion.getRetryTimes());
             } else {
-                LOG.info(String.format("Assert with total %s retries, interval %sms", assertion.getRetryTimes(), assertion.getRetryInterval()));
+                log.info("Assert with total {} retries, interval {}ms", assertion.getRetryTimes(), assertion.getRetryInterval());
             }
         } else {
-            LOG.info("Assert without retry...");
+            log.info("Assert without retry...");
         }
     }
 
