@@ -1,8 +1,8 @@
-- id: test1
+- key: test1
   url: 'jdbc:sqlite:test1.db'
-- id: test2
+- key: test2
   url: 'jdbc:sqlite:test1.db'
-- id: mysql
+- key: mysql
   driver: com.mysql.cj.jdbc.Driver
   url: jdbc:mysql://localhost:3306/test?useUnicode=true&characterEncoding=utf-8&useSSL=true
   username: test

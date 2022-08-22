@@ -1,18 +1,18 @@
 package com.github.cysong.dbassert.datasource;
 
 public class DatabaseConfig {
-    private String id;
+    private String key;
     private String driver;
     private String url;
     private String username;
     private String password;
 
-    public String getId() {
-        return id;
+    public String getKey() {
+        return key;
     }
 
-    public void setId(String id) {
-        this.id = id;
+    public void setKey(String key) {
+        this.key = key;
     }
 
     public String getDriver() {

@@ -30,25 +30,25 @@ public class DefaultConnectionFactory implements ConnectionFactory {
     }
 
     @Override
-    public Connection getConnectionByDbKey(String dbId) {
-        assert dbId != null;
+    public Connection getConnectionByDbKey(String dbKey) {
+        assert dbKey != null;
         if (!inited) {
             parseDatabaseConfig();
         }
-        if (!(conns != null && conns.containsKey(dbId))) {
-            initConnectionByDbId(dbId);
+        if (!(conns != null && conns.containsKey(dbKey))) {
+            initConnectionByDbKey(dbKey);
         }
-        Connection conn = conns.get(dbId);
+        Connection conn = conns.get(dbKey);
         if (conn == null) {
-            throw new ConfigurationException("Database config not found：" + dbId);
+            throw new ConfigurationException("Database config not found：" + dbKey);
         }
         if (isConnValid(conn)) {
             return conn;
         } else {
-            log.info("Database[{}] connect is not valid, reconnect", dbId);
-            conns.remove(dbId);
-            initConnectionByDbId(dbId);
-            conn = conns.get(dbId);
+            log.info("Database[{}] connect is not valid, reconnect", dbKey);
+            conns.remove(dbKey);
+            initConnectionByDbKey(dbKey);
+            conn = conns.get(dbKey);
         }
         return conn;
     }
@@ -68,20 +68,20 @@ public class DefaultConnectionFactory implements ConnectionFactory {
         }
         configMap = new ConcurrentHashMap<>(configList.size());
         for (DatabaseConfig config : configList) {
-            assert config.getId() != null && config.getUrl() != null;
-            configMap.put(config.getId(), config);
+            assert config.getKey() != null && config.getUrl() != null;
+            configMap.put(config.getKey(), config);
         }
         inited = true;
     }
 
-    private void initConnectionByDbId(String dbId) {
-        synchronized (dbId) {
-            if (conns != null && conns.containsKey(dbId)) {
+    private void initConnectionByDbKey(String dbKey) {
+        synchronized (dbKey) {
+            if (conns != null && conns.containsKey(dbKey)) {
                 return;
             }
-            DatabaseConfig dbConf = configMap.get(dbId);
+            DatabaseConfig dbConf = configMap.get(dbKey);
             if (dbConf == null) {
-                throw new ConfigurationException(String.format("Database config of id %s not found", dbId));
+                throw new ConfigurationException(String.format("Database config of key=%s not found", dbKey));
             }
 
             if (Utils.isNotBlank(dbConf.getDriver())) {
@@ -101,19 +101,19 @@ public class DefaultConnectionFactory implements ConnectionFactory {
                     break;
                 } catch (SQLTimeoutException e) {
                     if (count == 0) {
-                        throw new ConfigurationException(String.format("Connect to database[%s] fail：%s,%s", dbId, dbConf.getUrl(), dbConf.getUsername()), e);
+                        throw new ConfigurationException(String.format("Connect to database[%s] fail：%s,%s", dbKey, dbConf.getUrl(), dbConf.getUsername()), e);
                     } else {
-                        log.info("The {} times connect to database[{}] fail, retry", (3 - count), dbId);
+                        log.info("The {} times connect to database[{}] fail, retry", (3 - count), dbKey);
                     }
                 } catch (SQLException e) {
-                    throw new ConfigurationException(String.format("database [%s] connect fail：%s,%s", dbId, dbConf.getUrl(), dbConf.getUsername()), e);
+                    throw new ConfigurationException(String.format("database [%s] connect fail：%s,%s", dbKey, dbConf.getUrl(), dbConf.getUsername()), e);
                 }
             }
-            log.info("Database[{}] connect success：{},{}", dbId, dbConf.getUrl(), dbConf.getUsername());
+            log.info("Database[{}] connect success：{},{}", dbKey, dbConf.getUrl(), dbConf.getUsername());
             if (conns == null) {
-                conns = new ConcurrentHashMap<>();
+                conns = new ConcurrentHashMap<>(configMap.size());
             }
-            conns.put(dbId, connection);
+            conns.put(dbKey, connection);
         }
     }
 
@@ -134,7 +134,7 @@ public class DefaultConnectionFactory implements ConnectionFactory {
                     try {
                         entry.getValue().close();
                     } catch (SQLException e) {
-
+                        log.error(e.getMessage(), e);
                     }
                 }
             }
