@@ -135,6 +135,7 @@ public class SqliteTest {
                 .table(TestConstants.DEFAULT_TABLE_NAME)
                 .where("id", 1)
                 .col("adult")
+                .isNotNull()
                 .isFalse()
                 .run();
         DbAssert.create(conn)
@@ -142,6 +143,12 @@ public class SqliteTest {
                 .where("id", 2)
                 .col("adult")
                 .isTrue()
+                .run();
+        DbAssert.create(conn)
+                .table(TestConstants.DEFAULT_TABLE_NAME)
+                .where("id", 3)
+                .col("adult")
+                .isNull()
                 .run();
     }
 
@@ -153,6 +160,22 @@ public class SqliteTest {
                 .col("gender")
                 .in(Arrays.asList("M", "F"))
                 .notIn(Arrays.asList(1, 0))
+                .run();
+    }
+
+    @Test
+    public void testMatches() {
+        DbAssert.create(conn)
+                .table(TestConstants.DEFAULT_TABLE_NAME)
+                .where("id", 1)
+                .col("name")
+                .matches(name -> ((String) name).equals("alice"))
+                .run();
+        DbAssert.create(conn)
+                .table(TestConstants.DEFAULT_TABLE_NAME)
+                .where("id", 1)
+                .col("name")
+                .notMatch(name -> ((String) name).equals("bob"))
                 .run();
     }
 
@@ -177,9 +200,9 @@ public class SqliteTest {
     public void testCountAssertion() {
         DbAssert.create(conn)
                 .table(TestConstants.DEFAULT_TABLE_NAME)
-                .where("id", 1)
+                .where("gender", "M")
                 .col("gender")
-                .countEquals(1)
+                .countEquals(2)
                 .run();
     }
 
