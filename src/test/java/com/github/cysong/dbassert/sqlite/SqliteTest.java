@@ -72,6 +72,10 @@ public class SqliteTest {
                 .contains("a")
                 .isEqual("alice")
                 .isNotEqual("bob")
+                .greaterThanOrEqual("alice")
+                .lessThanOrEqual("alice")
+                .contains("li")
+                .notContain("bob")
                 .run();
     }
 
@@ -86,6 +90,10 @@ public class SqliteTest {
                 .isEqual(10.0)
                 .isEqual("10")
                 .isNotEqual("9")
+                .greaterThan(9)
+                .lessThan(11)
+                .between(10, 11)
+                .between(9, false, 11, false)
                 .run();
     }
 
