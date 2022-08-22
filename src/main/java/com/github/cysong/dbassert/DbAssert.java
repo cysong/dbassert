@@ -18,39 +18,24 @@ import java.sql.Connection;
 import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Map;
-import java.util.concurrent.ConcurrentHashMap;
 import java.util.function.Predicate;
 
 public class DbAssert {
-    private static final Map<String, Connection> CONN_MAP = new ConcurrentHashMap<>();
     private Assertion assertion;
     private DbObject currentObject;
     private List<Condition> currentConditions;
 
     public static DbAssert create(String dbKey) {
-        Connection conn = CONN_MAP.get(dbKey);
-        if (conn == null) {
-            conn = DbAssertOptions.getGlobal().getFactory().getConnectionByDbKey(dbKey);
-        }
-        if (conn == null) {
-            throw new IllegalArgumentException("Connection can not be null");
-        }
-        return DbAssert.create(dbKey, conn);
+        assert Utils.isNotBlank(dbKey);
+        Connection conn = DbAssertOptions.getGlobal().getFactory().getConnectionByDbKey(dbKey);
+        return DbAssert.create(conn);
     }
 
     public static DbAssert create(Connection conn) {
-        String dbKey = conn.toString();
-        assert Utils.isNotBlank(dbKey);
-        return DbAssert.create(dbKey, conn);
+        return new DbAssert(conn);
     }
 
-    public static DbAssert create(String dbKey, Connection conn) {
-        return new DbAssert(dbKey, conn);
-    }
-
-    private DbAssert(String dbKey, Connection conn) {
-        CONN_MAP.put(dbKey, conn);
+    private DbAssert(Connection conn) {
         this.assertion = new Assertion(conn);
     }
 
