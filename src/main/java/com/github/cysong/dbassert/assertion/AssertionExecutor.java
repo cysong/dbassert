@@ -62,6 +62,7 @@ public class AssertionExecutor {
             String aggSql = result.getAggregateSql();
             ResultSet aggRs = assertion.getConn().prepareStatement(aggSql).executeQuery();
 
+            aggRs.next();
             long totalRows = aggRs.getLong(Constants.COUNT_ROWS_LABEL);
             if (totalRows == 0) {
                 aggRs.close();
