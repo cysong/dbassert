@@ -115,7 +115,7 @@ public class ConditionTester {
             return false;
         }
         if (actual instanceof Boolean) {
-            return (Boolean) actual;
+            return !(Boolean) actual;
         }
         if (actual instanceof Integer) {
             return (Integer) actual == 0;
