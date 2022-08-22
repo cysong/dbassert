@@ -18,6 +18,12 @@ import java.sql.DriverManager;
 import java.sql.SQLException;
 import java.util.Arrays;
 
+/**
+ * Sqlite testcases
+ *
+ * @author cysong
+ * @date 2022/08/22 15:50
+ */
 public class SqliteTest {
     private static final Logger log = LoggerFactory.getLogger(SqliteTest.class);
     private static final String dbFile = "sqlite.db";

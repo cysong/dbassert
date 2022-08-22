@@ -1,11 +1,11 @@
 package com.github.cysong.dbassert;
 
 /**
- * @program: dbassert
- * @description:
- * @author: chenyansong
- * @create: 2022-08-22 10:43
- **/
+ * Test constants
+ *
+ * @author cysong
+ * @date 2022/08/22 15:50
+ */
 public class TestConstants {
 
     public static final String DEFAULT_TABLE_NAME = "person";

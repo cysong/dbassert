@@ -11,6 +11,12 @@ import java.io.IOException;
 import java.sql.Connection;
 import java.sql.SQLException;
 
+/**
+ * ConnectionFactory testcases
+ *
+ * @author cysong
+ * @date 2022/08/22 15:50
+ */
 public class ConnectionFactoryTest {
     private static String dbFile = "test1.db";
 

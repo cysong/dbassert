@@ -9,11 +9,11 @@ import java.sql.ResultSet;
 import java.sql.SQLException;
 
 /**
- * @program: dbassert
- * @description:
- * @author: chenyansong
- * @create: 2022-08-22 10:40
- **/
+ * Test Utils
+ *
+ * @author cysong
+ * @date 2022/08/22 15:50
+ */
 public class TestUtils {
 
     public static void initDb(Connection conn) throws SQLException, IOException {

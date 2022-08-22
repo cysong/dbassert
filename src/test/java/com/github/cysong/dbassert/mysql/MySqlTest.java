@@ -16,11 +16,11 @@ import java.sql.SQLException;
 import java.util.Arrays;
 
 /**
- * @program: dbassert
- * @description:
- * @author: chenyansong
- * @create: 2022-08-22 10:37
- **/
+ * MySql testcases
+ *
+ * @author cysong
+ * @date 2022/08/22 15:50
+ */
 public class MySqlTest {
     private static final String dbKey = "mysql";
 
