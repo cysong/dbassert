@@ -1,39 +1,43 @@
-package com.github.cysong.dbassert.sqlite;
+package com.github.cysong.dbassert.mysql;
 
 import com.github.cysong.dbassert.DbAssert;
 import com.github.cysong.dbassert.TestConstants;
 import com.github.cysong.dbassert.TestUtils;
+import com.github.cysong.dbassert.option.DbAssertOptions;
 import com.github.cysong.dbassert.utitls.Utils;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.testng.Assert;
 import org.testng.annotations.AfterClass;
 import org.testng.annotations.BeforeClass;
 import org.testng.annotations.Test;
 
-import java.io.File;
 import java.io.IOException;
 import java.sql.Connection;
-import java.sql.DriverManager;
 import java.sql.SQLException;
 import java.util.Arrays;
 
-public class SqliteTest {
-    private static final Logger log = LoggerFactory.getLogger(SqliteTest.class);
-    private static final String dbFile = "sqlite.db";
-    private static Connection conn;
+/**
+ * @program: dbassert
+ * @description:
+ * @author: chenyansong
+ * @create: 2022-08-22 10:37
+ **/
+public class MySqlTest {
+    private static final String dbKey = "mysql";
 
     @BeforeClass
     public static void setup() throws SQLException, IOException {
-        String url = "jdbc:sqlite:" + dbFile;
-        conn = DriverManager.getConnection(url);
-
+        Connection conn = DbAssertOptions.getGlobal().getFactory().getConnectionByDbKey(dbKey);
         TestUtils.initDb(conn);
+        try {
+            conn.close();
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
     }
 
     @Test(timeOut = 1000)
     public void testNotRetry() {
-        DbAssert.create(conn)
+        DbAssert.create(dbKey)
                 .retry(false)
                 .table(TestConstants.DEFAULT_TABLE_NAME)
                 .where("id", 1)
@@ -47,13 +51,14 @@ public class SqliteTest {
         new Thread(() -> {
             Utils.sleep(6000);
             try {
+                Connection conn = DbAssertOptions.getGlobal().getFactory().getConnectionByDbKey(dbKey);
                 conn.prepareStatement("update person set name = 'cole' where id=3").executeUpdate();
             } catch (SQLException e) {
                 e.printStackTrace();
             }
         }).start();
         long start = System.currentTimeMillis();
-        DbAssert.create(conn)
+        DbAssert.create(dbKey)
                 .table(TestConstants.DEFAULT_TABLE_NAME)
                 .where("id", 3)
                 .col("name").as("person name").isEqual("cole")
@@ -63,7 +68,7 @@ public class SqliteTest {
 
     @Test
     public void testStringColumnAssertion() {
-        DbAssert.create(conn)
+        DbAssert.create(dbKey)
                 .table(TestConstants.DEFAULT_TABLE_NAME)
                 .where("id", 1)
                 .col("name")
@@ -81,7 +86,7 @@ public class SqliteTest {
 
     @Test
     public void testIntegerColumnAssertion() {
-        DbAssert.create(conn)
+        DbAssert.create(dbKey)
                 .table(TestConstants.DEFAULT_TABLE_NAME)
                 .where("id", 1)
                 .col("age").isNotNull()
@@ -99,7 +104,7 @@ public class SqliteTest {
 
     @Test
     public void testFloatColumnAssertion() {
-        DbAssert.create(conn)
+        DbAssert.create(dbKey)
                 .table(TestConstants.DEFAULT_TABLE_NAME)
                 .where("id", 1)
                 .col("weight").isNotNull()
@@ -115,7 +120,7 @@ public class SqliteTest {
 
     @Test
     public void testDoubleColumnAssertion() {
-        DbAssert.create(conn)
+        DbAssert.create(dbKey)
                 .table(TestConstants.DEFAULT_TABLE_NAME)
                 .where("id", 1)
                 .col("height")
@@ -131,13 +136,13 @@ public class SqliteTest {
 
     @Test
     public void testBooleanColumnAssertion() {
-        DbAssert.create(conn)
+        DbAssert.create(dbKey)
                 .table(TestConstants.DEFAULT_TABLE_NAME)
                 .where("id", 1)
                 .col("adult")
                 .isFalse()
                 .run();
-        DbAssert.create(conn)
+        DbAssert.create(dbKey)
                 .table(TestConstants.DEFAULT_TABLE_NAME)
                 .where("id", 2)
                 .col("adult")
@@ -147,7 +152,7 @@ public class SqliteTest {
 
     @Test
     public void testInCondition() {
-        DbAssert.create(conn)
+        DbAssert.create(dbKey)
                 .table(TestConstants.DEFAULT_TABLE_NAME)
                 .where("id", 1)
                 .col("gender")
@@ -158,8 +163,9 @@ public class SqliteTest {
 
     @Test
     public void testRowsAssertion() throws SQLException {
+        Connection conn = DbAssertOptions.getGlobal().getFactory().getConnectionByDbKey(dbKey);
         long totalRows = TestUtils.getTotalRowsOfTable(conn, TestConstants.DEFAULT_TABLE_NAME);
-        DbAssert.create(conn)
+        DbAssert.create(dbKey)
                 .table(TestConstants.DEFAULT_TABLE_NAME)
                 .rowsEqual(totalRows)
                 .rowsGreaterThan(totalRows - 1)
@@ -175,7 +181,7 @@ public class SqliteTest {
 
     @Test
     public void testCountAssertion() {
-        DbAssert.create(conn)
+        DbAssert.create(dbKey)
                 .table(TestConstants.DEFAULT_TABLE_NAME)
                 .where("id", 1)
                 .col("gender")
@@ -185,7 +191,7 @@ public class SqliteTest {
 
     @Test
     public void testDistinctCountAssertion() {
-        DbAssert.create(conn)
+        DbAssert.create(dbKey)
                 .table(TestConstants.DEFAULT_TABLE_NAME)
                 .col("gender")
                 .distinctCountEqual(2)
@@ -194,7 +200,7 @@ public class SqliteTest {
 
     @Test
     public void testSuccessIfNotFound() {
-        DbAssert.create(conn)
+        DbAssert.create(dbKey)
                 .table(TestConstants.DEFAULT_TABLE_NAME)
                 .retry(false)
                 .failIfNotFound(false)
@@ -205,7 +211,7 @@ public class SqliteTest {
 
     @Test(expectedExceptions = AssertionError.class)
     public void testFailIfNotFound() {
-        DbAssert.create(conn)
+        DbAssert.create(dbKey)
                 .table(TestConstants.DEFAULT_TABLE_NAME)
                 .retry(false)
                 .failIfNotFound(true)
@@ -216,7 +222,7 @@ public class SqliteTest {
 
     @Test
     public void testAggregateAssertion() {
-        DbAssert.create(conn)
+        DbAssert.create(dbKey)
                 .table(TestConstants.DEFAULT_TABLE_NAME)
                 .where("name", "bob")
                 .col("name")
@@ -227,15 +233,9 @@ public class SqliteTest {
     }
 
     @AfterClass
-    public static void tearDown() {
-        try {
-            conn.close();
-        } catch (SQLException e) {
-            log.error(e.getMessage(), e);
-        }
-        File db = new File(dbFile);
-        if (db.exists()) {
-            db.delete();
-        }
+    public static void tearDown() throws SQLException {
+        Connection conn = DbAssertOptions.getGlobal().getFactory().getConnectionByDbKey(dbKey);
+        conn.prepareStatement(String.format("drop table if exists %s cascade", TestConstants.DEFAULT_TABLE_NAME)).executeUpdate();
     }
+
 }

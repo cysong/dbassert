@@ -13,10 +13,12 @@
         <maven.compiler.target>8</maven.compiler.target>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
         <snakeyaml.version>1.21</snakeyaml.version>
-        <slf4j.version>1.7.36</slf4j.version>
+        <slf4j.version>1.7.32</slf4j.version>
         <junit.version>4.13.2</junit.version>
+        <testng.version>7.5</testng.version>
         <sqlite.version>3.36.0.3</sqlite.version>
         <logback.version>1.2.11</logback.version>
+        <mysql.version>8.0.30</mysql.version>
     </properties>
 
     <dependencies>
@@ -31,9 +33,9 @@
             <version>${slf4j.version}</version>
         </dependency>
         <dependency>
-            <groupId>junit</groupId>
-            <artifactId>junit</artifactId>
-            <version>${junit.version}</version>
+            <groupId>org.testng</groupId>
+            <artifactId>testng</artifactId>
+            <version>${testng.version}</version>
             <scope>test</scope>
         </dependency>
         <dependency>
@@ -52,6 +54,12 @@
             <groupId>ch.qos.logback</groupId>
             <artifactId>logback-classic</artifactId>
             <version>${logback.version}</version>
+            <scope>test</scope>
+        </dependency>
+        <dependency>
+            <groupId>mysql</groupId>
+            <artifactId>mysql-connector-java</artifactId>
+            <version>${mysql.version}</version>
             <scope>test</scope>
         </dependency>
     </dependencies>

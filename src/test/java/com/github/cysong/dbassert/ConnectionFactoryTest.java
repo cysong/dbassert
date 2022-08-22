@@ -1,26 +1,23 @@
 package com.github.cysong.dbassert;
 
+import com.github.cysong.dbassert.option.DbAssertOptions;
 import com.github.cysong.dbassert.option.DbAssertSetup;
-import com.github.cysong.dbassert.utitls.SqlUtils;
-import org.junit.AfterClass;
-import org.junit.BeforeClass;
-import org.junit.Test;
+import org.testng.annotations.AfterSuite;
+import org.testng.annotations.BeforeClass;
+import org.testng.annotations.Test;
 
 import java.io.File;
 import java.io.IOException;
-import java.io.InputStream;
 import java.sql.Connection;
-import java.sql.DriverManager;
 import java.sql.SQLException;
 
 public class ConnectionFactoryTest {
     private static String dbFile = "test1.db";
-    private static final String sqlFile = "sqlite.sql";
 
     @BeforeClass
     public static void setup() throws SQLException, IOException {
-        Connection conn = DriverManager.getConnection("jdbc:sqlite:" + dbFile);
-        initDb(conn);
+        Connection conn = DbAssertOptions.getGlobal().getFactory().getConnectionByDbKey("test1");
+        TestUtils.initDb(conn);
         try {
             conn.close();
         } catch (SQLException e) {
@@ -38,8 +35,7 @@ public class ConnectionFactoryTest {
                 .run();
     }
 
-
-    @AfterClass
+    @AfterSuite
     public static void tearDown() {
         DbAssertSetup.setup().getFactory().destroy();
         File db = new File(dbFile);
@@ -47,13 +43,4 @@ public class ConnectionFactoryTest {
             db.delete();
         }
     }
-
-    public static void initDb(Connection conn) throws SQLException, IOException {
-        InputStream is = Thread.currentThread().getContextClassLoader().getResourceAsStream(sqlFile);
-        assert is != null;
-        SqlUtils.loadSqlScript(conn, is);
-        is.close();
-    }
-
-
 }
