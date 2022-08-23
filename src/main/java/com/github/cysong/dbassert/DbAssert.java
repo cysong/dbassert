@@ -5,10 +5,7 @@ import com.github.cysong.dbassert.assertion.Assertion;
 import com.github.cysong.dbassert.assertion.AssertionExecutor;
 import com.github.cysong.dbassert.constant.*;
 import com.github.cysong.dbassert.exception.ConfigurationException;
-import com.github.cysong.dbassert.expression.AggregateCondition;
-import com.github.cysong.dbassert.expression.Boundary;
-import com.github.cysong.dbassert.expression.Condition;
-import com.github.cysong.dbassert.expression.Order;
+import com.github.cysong.dbassert.expression.*;
 import com.github.cysong.dbassert.object.Column;
 import com.github.cysong.dbassert.object.DbObject;
 import com.github.cysong.dbassert.option.DbAssertOptions;
@@ -215,7 +212,7 @@ public class DbAssert {
      * @date 2022/8/22 16:35
      **/
     public DbAssert where(String columnName, Object value) {
-        this.assertion.addCondition(Condition.create(columnName, Comparator.EQUAL, value));
+        this.assertion.addFilter(Filter.create(columnName, value));
         return this;
     }
 
@@ -229,20 +226,20 @@ public class DbAssert {
      * @date 2022/8/22 16:36
      **/
     public DbAssert and(String columnName, Object value) {
-        this.assertion.addCondition(Condition.create(columnName, Comparator.EQUAL, value));
+        this.assertion.addFilter(Filter.create(columnName, value));
         return this;
     }
 
     /**
      * Set text format where condition,effective if condition is complex
      *
-     * @param textCondition where statement in text format
+     * @param expression where statement in text format
      * @return com.github.cysong.dbassert.DbAssert
      * @author cysong
      * @date 2022/8/22 16:36
      **/
-    public DbAssert where(String textCondition) {
-        this.assertion.setTextCondition(textCondition);
+    public DbAssert where(String expression) {
+        this.assertion.addFilter(TextFilter.create(expression));
         return this;
     }
 

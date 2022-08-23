@@ -2,10 +2,10 @@ package com.github.cysong.dbassert.assertion;
 
 import com.github.cysong.dbassert.constant.Constants;
 import com.github.cysong.dbassert.constant.Sort;
+import com.github.cysong.dbassert.expression.AbstractFilter;
 import com.github.cysong.dbassert.expression.Condition;
 import com.github.cysong.dbassert.object.DbObject;
 import com.github.cysong.dbassert.option.DbAssertOptions;
-import com.github.cysong.dbassert.utitls.Utils;
 
 import java.sql.Connection;
 import java.util.ArrayList;
@@ -34,8 +34,7 @@ public class Assertion {
     private int startIndex = 1;
     private int pageSize;
 
-    private String textCondition;
-    private List<Condition> conditions;
+    private List<AbstractFilter> filters;
     private List<Condition> verifies;
     private List<Condition> rowVerifies;
     private List<Sort> sorts;
@@ -62,12 +61,12 @@ public class Assertion {
         }
     }
 
-    public Assertion addCondition(Condition condition) {
-        assert condition != null;
-        if (this.conditions == null) {
-            this.conditions = new ArrayList<>();
+    public Assertion addFilter(AbstractFilter filter) {
+        assert filter != null;
+        if (this.filters == null) {
+            this.filters = new ArrayList<>();
         }
-        this.conditions.add(condition);
+        this.filters.add(filter);
         return this;
     }
 
@@ -217,17 +216,8 @@ public class Assertion {
         this.pageSize = pageSize;
     }
 
-    public String getTextCondition() {
-        return textCondition;
-    }
-
-    public void setTextCondition(String textCondition) {
-        assert Utils.isNotBlank(textCondition);
-        this.textCondition = textCondition;
-    }
-
-    public List<Condition> getConditions() {
-        return conditions;
+    public List<AbstractFilter> getFilters() {
+        return filters;
     }
 
     public List<Condition> getVerifies() {

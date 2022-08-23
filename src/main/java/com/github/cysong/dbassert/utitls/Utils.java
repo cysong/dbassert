@@ -32,6 +32,14 @@ public class Utils {
         return !isEmpty(map);
     }
 
+    public static boolean isEmpty(CharSequence cs) {
+        return cs != null && cs.length() == 0;
+    }
+
+    public static boolean isNotEmpty(CharSequence cs) {
+        return isEmpty(cs);
+    }
+
     public static boolean isBlank(CharSequence cs) {
         int strLen;
         if (cs != null && (strLen = cs.length()) != 0) {
@@ -40,7 +48,6 @@ public class Utils {
                     return false;
                 }
             }
-
             return true;
         }
         return true;
@@ -57,7 +64,7 @@ public class Utils {
         }
     }
 
-    public static String readFromInputStream(InputStream inputStream) throws IOException {
+    public static String readInputStreamAsString(InputStream inputStream) throws IOException {
         StringBuilder resultStringBuilder = new StringBuilder();
         try (BufferedReader br
                      = new BufferedReader(new InputStreamReader(inputStream))) {
@@ -67,5 +74,24 @@ public class Utils {
             }
         }
         return resultStringBuilder.toString();
+    }
+
+    public static String trim(String source, char c) {
+        if (source == null || source.length() == 0) {
+            return source;
+        }
+        char[] val = source.toCharArray();
+        int len = val.length;
+        int i = 0;
+        while ((i < len) && (val[i] == c)) {
+            i++;
+        }
+        while ((i < len) && val[len - 1] == c) {
+            len--;
+        }
+        if (i > 0 || len < val.length) {
+            return new String(val, i, len - i);
+        }
+        return source;
     }
 }

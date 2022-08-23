@@ -14,7 +14,7 @@ import java.sql.SQLException;
 public class SqlUtils {
 
     public static void loadSqlScript(Connection conn, InputStream is) throws IOException, SQLException {
-        String script = Utils.readFromInputStream(is);
+        String script = Utils.readInputStreamAsString(is);
         String[] sqls = script.split(";");
         for (String sql : sqls) {
             if (Utils.isNotBlank(sql)) {

@@ -68,6 +68,28 @@ public class SqliteTest {
     }
 
     @Test
+    public void testFilter() {
+        DbAssert.create(conn)
+                .table(TestConstants.DEFAULT_TABLE_NAME)
+                .where("name", "alice")
+                .col("id")
+                .isEqual(1)
+                .run();
+        DbAssert.create(conn)
+                .table(TestConstants.DEFAULT_TABLE_NAME)
+                .where("name", "alice")
+                .and("id", 1)
+                .rowsEqual(1)
+                .run();
+        DbAssert.create(conn)
+                .table(TestConstants.DEFAULT_TABLE_NAME)
+                .where("name='alice'")
+                .col("id")
+                .isEqual(1)
+                .run();
+    }
+
+    @Test
     public void testStringColumnAssertion() {
         DbAssert.create(conn)
                 .table(TestConstants.DEFAULT_TABLE_NAME)

@@ -4,9 +4,11 @@ import com.github.cysong.dbassert.assertion.Assertion;
 import com.github.cysong.dbassert.expression.AggregateCondition;
 import com.github.cysong.dbassert.expression.Condition;
 
+import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
+import java.util.stream.StreamSupport;
 
 public abstract class AbstractSqlBuilder implements SqlBuilder {
     protected Assertion assertion;
@@ -67,10 +69,31 @@ public abstract class AbstractSqlBuilder implements SqlBuilder {
         return "";
     }
 
-    protected String wrapConditionValue(Object value) {
+    protected String wrapFilterValue(Object value) {
+        if (value == null) {
+            return null;
+        }
         if (value instanceof CharSequence) {
-            return "'" + value + "'";
+            return wrapFilterStringValue((CharSequence) value);
+        }
+        if (value instanceof Iterable) {
+            Iterator it = ((Iterable<?>) value).iterator();
+            if (it.hasNext()) {
+                boolean isString = it.next() instanceof CharSequence;
+
+                return StreamSupport.stream(((Iterable<?>) value).spliterator(), false)
+                        .map(item -> isString ? wrapFilterStringValue((CharSequence) item) : String.valueOf(item))
+                        .collect(Collectors.joining(",", "(", ")"));
+            }
+            return null;
         }
         return String.valueOf(value);
+    }
+
+    private String wrapFilterStringValue(CharSequence value) {
+        if (value == null) {
+            return null;
+        }
+        return "'" + value + "'";
     }
 }

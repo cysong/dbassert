@@ -67,6 +67,28 @@ public class MySqlTest {
     }
 
     @Test
+    public void testFilter() {
+        DbAssert.create(dbKey)
+                .table(TestConstants.DEFAULT_TABLE_NAME)
+                .where("name", "alice")
+                .col("id")
+                .isEqual(1)
+                .run();
+        DbAssert.create(dbKey)
+                .table(TestConstants.DEFAULT_TABLE_NAME)
+                .where("name", "alice")
+                .and("id", 1)
+                .rowsEqual(1)
+                .run();
+        DbAssert.create(dbKey)
+                .table(TestConstants.DEFAULT_TABLE_NAME)
+                .where("name='alice'")
+                .col("id")
+                .isEqual(1)
+                .run();
+    }
+
+    @Test
     public void testStringColumnAssertion() {
         DbAssert.create(dbKey)
                 .table(TestConstants.DEFAULT_TABLE_NAME)
