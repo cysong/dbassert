@@ -18,6 +18,12 @@ import java.sql.SQLException;
 import java.util.List;
 import java.util.Map;
 
+/**
+ * Executor for asserting
+ *
+ * @author cysong
+ * @date 2022/08/22 15:50
+ **/
 public class AssertionExecutor {
     private static final Logger log = LoggerFactory.getLogger(AssertionExecutor.class);
     private final Assertion assertion;
@@ -30,6 +36,12 @@ public class AssertionExecutor {
         this.assertion = assertion;
     }
 
+    /**
+     * do the assert
+     *
+     * @author cysong
+     * @date 2022/8/23 9:25
+     **/
     public void run() throws SQLException {
         Connection conn = assertion.getConn();
         DatabaseMetaData md = conn.getMetaData();
@@ -100,6 +112,15 @@ public class AssertionExecutor {
         } while (loop++ < totalLoop);
     }
 
+    /**
+     * verify total rows, if isFinal is true throw AssertionError or only print log when verify fail
+     *
+     * @param totalRows value of count(*) return by the query
+     * @param isFinal   determine throw AssertionError or print log when verify fail
+     * @return boolean
+     * @author cysong
+     * @date 2022/8/23 9:26
+     **/
     private boolean verifyRows(long totalRows, boolean isFinal) {
         if (Utils.isEmpty(assertion.getRowVerifies())) {
             return true;
@@ -113,6 +134,16 @@ public class AssertionExecutor {
         return true;
     }
 
+    /**
+     * verify aggregate columns
+     *
+     * @param rs           result set return by query
+     * @param aggColumnMap aggregate column map group by column name
+     * @param isFinal      determine throw AssertionError or print log when verify fail
+     * @return boolean
+     * @author cysong
+     * @date 2022/8/23 9:31
+     **/
     private boolean verifyAggregates(ResultSet rs, Map<String, List<AggregateCondition>> aggColumnMap, boolean isFinal) throws SQLException {
         if (Utils.isEmpty(aggColumnMap)) {
             return true;
@@ -134,6 +165,16 @@ public class AssertionExecutor {
         return true;
     }
 
+    /**
+     * verify column details
+     *
+     * @param rs        result set return by query
+     * @param columnMap column map group by column name
+     * @param isFinal   determine throw AssertionError or print log when verify fail
+     * @return boolean
+     * @author cysong
+     * @date 2022/8/23 9:35
+     **/
     private boolean verifyDetails(ResultSet rs, Map<String, List<Condition>> columnMap, boolean isFinal) throws SQLException {
         while (rs.next()) {
             for (String col : columnMap.keySet()) {
@@ -150,6 +191,14 @@ public class AssertionExecutor {
         return true;
     }
 
+    /**
+     * throw AssertionError if isFinal is true or print message
+     *
+     * @param isFinal
+     * @param messageBuilder
+     * @author cysong
+     * @date 2022/8/23 9:36
+     **/
     private void doAssert(boolean isFinal, MessageBuilder messageBuilder) {
         if (isFinal) {
             throw new AssertionError(messageBuilder.build());
@@ -182,9 +231,15 @@ public class AssertionExecutor {
 
     @FunctionalInterface
     private interface MessageBuilder {
-
+        /**
+         * build message for lazy executing
+         *
+         * @return java.lang.String
+         * @author cysong
+         * @date 2022/8/23 9:38
+         **/
         String build();
-        
+
     }
 
 }

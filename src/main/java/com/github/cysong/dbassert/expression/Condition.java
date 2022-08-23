@@ -4,6 +4,12 @@ import com.github.cysong.dbassert.constant.Comparator;
 
 import java.util.Optional;
 
+/**
+ * condition describe a assertion or filter
+ *
+ * @author cysong
+ * @date 2022/08/22 15:50
+ **/
 public class Condition {
     protected String columnName;
     protected String alias;

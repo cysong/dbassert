@@ -2,6 +2,12 @@ package com.github.cysong.dbassert.object;
 
 import com.github.cysong.dbassert.constant.ObjectType;
 
+/**
+ * database object
+ *
+ * @author cysong
+ * @date 2022/08/22 15:50
+ **/
 public abstract class DbObject {
     private ObjectType type;
     private String name;

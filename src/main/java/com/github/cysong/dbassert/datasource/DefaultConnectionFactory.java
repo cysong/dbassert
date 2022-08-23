@@ -18,12 +18,19 @@ import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 
+/**
+ * default value if ConnectionFactory if not set
+ * {@link com.github.cysong.dbassert.option.DbAssertOptions#factory(ConnectionFactory factory)}
+ *
+ * @author cysong
+ * @date 2022/08/22 15:50
+ **/
 public class DefaultConnectionFactory implements ConnectionFactory {
     private static final Logger log = LoggerFactory.getLogger(DefaultConnectionFactory.class);
     private String databaseFile;
     private volatile boolean inited = false;
     private Map<String, DatabaseConfig> configMap;
-    private Map<String, Connection> conns;
+    private Map<String, Connection> connMap;
 
     public DefaultConnectionFactory(String databaseFile) {
         this.databaseFile = databaseFile;
@@ -35,10 +42,10 @@ public class DefaultConnectionFactory implements ConnectionFactory {
         if (!inited) {
             parseDatabaseConfig();
         }
-        if (!(conns != null && conns.containsKey(dbKey))) {
+        if (!(connMap != null && connMap.containsKey(dbKey))) {
             initConnectionByDbKey(dbKey);
         }
-        Connection conn = conns.get(dbKey);
+        Connection conn = connMap.get(dbKey);
         if (conn == null) {
             throw new ConfigurationException("Database config not found：" + dbKey);
         }
@@ -46,9 +53,9 @@ public class DefaultConnectionFactory implements ConnectionFactory {
             return conn;
         } else {
             log.info("Database[{}] connect is not valid, reconnect", dbKey);
-            conns.remove(dbKey);
+            connMap.remove(dbKey);
             initConnectionByDbKey(dbKey);
-            conn = conns.get(dbKey);
+            conn = connMap.get(dbKey);
         }
         return conn;
     }
@@ -76,7 +83,7 @@ public class DefaultConnectionFactory implements ConnectionFactory {
 
     private void initConnectionByDbKey(String dbKey) {
         synchronized (dbKey) {
-            if (conns != null && conns.containsKey(dbKey)) {
+            if (connMap != null && connMap.containsKey(dbKey)) {
                 return;
             }
             DatabaseConfig dbConf = configMap.get(dbKey);
@@ -110,10 +117,10 @@ public class DefaultConnectionFactory implements ConnectionFactory {
                 }
             }
             log.info("Database[{}] connect success：{},{}", dbKey, dbConf.getUrl(), dbConf.getUsername());
-            if (conns == null) {
-                conns = new ConcurrentHashMap<>(configMap.size());
+            if (connMap == null) {
+                connMap = new ConcurrentHashMap<>(configMap.size());
             }
-            conns.put(dbKey, connection);
+            connMap.put(dbKey, connection);
         }
     }
 
@@ -127,8 +134,8 @@ public class DefaultConnectionFactory implements ConnectionFactory {
 
     @Override
     public void destroy() {
-        if (conns != null && conns.size() > 0) {
-            for (Map.Entry<String, Connection> entry : conns.entrySet()) {
+        if (connMap != null && connMap.size() > 0) {
+            for (Map.Entry<String, Connection> entry : connMap.entrySet()) {
                 if (entry.getValue() != null) {
                     log.info("Database {} is closing...", entry.getKey());
                     try {
@@ -138,7 +145,7 @@ public class DefaultConnectionFactory implements ConnectionFactory {
                     }
                 }
             }
-            conns.clear();
+            connMap.clear();
         }
         if (configMap != null && configMap.size() > 0) {
             configMap.clear();

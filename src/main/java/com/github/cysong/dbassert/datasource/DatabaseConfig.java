@@ -1,5 +1,11 @@
 package com.github.cysong.dbassert.datasource;
 
+/**
+ * basic info for connecting a database
+ *
+ * @author cysong
+ * @date 2022/08/22 15:50
+ **/
 public class DatabaseConfig {
     private String key;
     private String driver;

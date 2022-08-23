@@ -9,6 +9,12 @@ import java.util.Iterator;
 import java.util.Objects;
 import java.util.function.Predicate;
 
+/**
+ * test condition defined by {@link com.github.cysong.dbassert.expression.Condition}
+ *
+ * @author cysong
+ * @date 2022/08/22 15:50
+ **/
 public class ConditionTester {
 
     public static boolean test(Comparator comparator, Object actual, Object expected) {

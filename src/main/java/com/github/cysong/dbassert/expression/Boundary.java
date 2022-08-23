@@ -1,5 +1,12 @@
 package com.github.cysong.dbassert.expression;
 
+
+/**
+ * boundary between min and max
+ *
+ * @author cysong
+ * @date 2022/08/22 15:50
+ **/
 public class Boundary<T> {
     private T min;
     private T max;
@@ -21,6 +28,7 @@ public class Boundary<T> {
         this.excludeMax = excludeMax;
     }
 
+    @Override
     public String toString() {
         return (excludeMin ? "(" : "[") + min + "," + max + (excludeMax ? ")" : "]");
     }

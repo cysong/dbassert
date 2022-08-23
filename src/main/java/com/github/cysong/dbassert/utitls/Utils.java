@@ -8,6 +8,12 @@ import java.util.Collection;
 import java.util.Map;
 import java.util.concurrent.TimeUnit;
 
+/**
+ * common utils
+ *
+ * @author cysong
+ * @date 2022/08/22 15:50
+ **/
 public class Utils {
 
     public static boolean isEmpty(Collection collection) {

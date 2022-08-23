@@ -7,6 +7,12 @@ import com.github.cysong.dbassert.utitls.Utils;
 import java.util.List;
 import java.util.Map;
 
+/**
+ * return value of sqlbuilder
+ *
+ * @author cysong
+ * @date 2022/08/22 15:50
+ **/
 public class SqlResult {
 
     private Map<String, List<Condition>> columns;

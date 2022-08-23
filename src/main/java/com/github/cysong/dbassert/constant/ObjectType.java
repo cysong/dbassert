@@ -5,6 +5,12 @@ import com.github.cysong.dbassert.object.Database;
 import com.github.cysong.dbassert.object.DbObject;
 import com.github.cysong.dbassert.object.Table;
 
+/**
+ * database object type
+ *
+ * @author cysong
+ * @date 2022/08/22 15:50
+ **/
 public enum ObjectType {
     DATABASE, TABLE, COLUMN;
 

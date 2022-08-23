@@ -7,8 +7,15 @@ import com.github.cysong.dbassert.utitls.Utils;
 
 import java.util.stream.Collectors;
 
+/**
+ * sqlbuilder for mysql
+ *
+ * @author cysong
+ * @date 2022/08/22 15:50
+ **/
 public class MysqlBuilder extends AbstractSqlBuilder {
 
+    @Override
     protected void buildSql() {
         StringBuilder sb = new StringBuilder("select %s from ");
         sb.append(getQuotedFullTableName());
@@ -63,10 +70,12 @@ public class MysqlBuilder extends AbstractSqlBuilder {
         return "MySql".equalsIgnoreCase(dbProductName) || "Sqlite".equalsIgnoreCase(dbProductName);
     }
 
+    @Override
     protected String getOpenQuote() {
         return "`";
     }
 
+    @Override
     protected String getCloseQuote() {
         return "`";
     }

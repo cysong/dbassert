@@ -3,6 +3,12 @@ package com.github.cysong.dbassert.constant;
 import com.github.cysong.dbassert.expression.Order;
 import com.github.cysong.dbassert.utitls.Utils;
 
+/**
+ * sort statement of sql
+ *
+ * @author cysong
+ * @date 2022/08/22 15:50
+ **/
 public class Sort {
     private String orderBy;
     private Order order;

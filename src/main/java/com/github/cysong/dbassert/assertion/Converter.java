@@ -4,6 +4,12 @@ package com.github.cysong.dbassert.assertion;
 import java.math.BigDecimal;
 import java.math.BigInteger;
 
+/**
+ * Convert utils for java type
+ *
+ * @author cysong
+ * @date 2022/08/22 15:50
+ **/
 public class Converter {
 
     public static Integer toInteger(Object value) {

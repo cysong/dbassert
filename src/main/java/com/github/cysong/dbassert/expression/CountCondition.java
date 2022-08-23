@@ -3,6 +3,12 @@ package com.github.cysong.dbassert.expression;
 import com.github.cysong.dbassert.constant.Aggregate;
 import com.github.cysong.dbassert.constant.Comparator;
 
+/**
+ * condition describe a assertion with count function
+ *
+ * @author cysong
+ * @date 2022/08/22 15:50
+ **/
 public class CountCondition extends AggregateCondition {
     private boolean distinct;
 
@@ -26,5 +32,5 @@ public class CountCondition extends AggregateCondition {
     public boolean isDistinct() {
         return distinct;
     }
-    
+
 }

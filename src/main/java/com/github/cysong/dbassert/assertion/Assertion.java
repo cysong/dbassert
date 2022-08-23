@@ -11,6 +11,13 @@ import java.sql.Connection;
 import java.util.ArrayList;
 import java.util.List;
 
+/**
+ * Object generate by {@link com.github.cysong.dbassert.DbAssert}
+ * and passing to {@link AssertionExecutor}
+ *
+ * @author cysong
+ * @date 2022/08/22 15:50
+ **/
 public class Assertion {
     private Connection conn;
     private String database;

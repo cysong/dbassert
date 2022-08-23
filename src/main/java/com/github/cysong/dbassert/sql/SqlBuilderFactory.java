@@ -5,6 +5,12 @@ import com.github.cysong.dbassert.exception.SqlBuilderNotFoundException;
 import java.util.Iterator;
 import java.util.ServiceLoader;
 
+/**
+ * factory for generate sqlbuilder by database product name
+ *
+ * @author cysong
+ * @date 2022/08/22 15:50
+ **/
 public class SqlBuilderFactory {
     private static final ServiceLoader<SqlBuilder> loader = ServiceLoader.load(SqlBuilder.class);
 

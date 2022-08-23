@@ -3,6 +3,12 @@ package com.github.cysong.dbassert.expression;
 import com.github.cysong.dbassert.constant.Aggregate;
 import com.github.cysong.dbassert.constant.Comparator;
 
+/**
+ * condition describe a assertion with a aggregate function
+ *
+ * @author cysong
+ * @date 2022/08/22 15:50
+ **/
 public class AggregateCondition extends Condition {
     private Aggregate aggregate;
 

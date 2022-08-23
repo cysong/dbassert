@@ -7,6 +7,12 @@ import com.github.cysong.dbassert.expression.Condition;
 
 import java.text.MessageFormat;
 
+/**
+ * comparator for assertion
+ *
+ * @author cysong
+ * @date 2022/08/22 15:50
+ **/
 public enum Comparator {
 
     EQUAL("equal", "{0} expected equal {1}, actual is {2}"),
@@ -37,6 +43,15 @@ public enum Comparator {
         this.format = format;
     }
 
+    /**
+     * build assert message if fail
+     *
+     * @param con    condition for assert
+     * @param actual actual value return by query
+     * @return java.lang.String
+     * @author cysong
+     * @date 2022/8/23 10:01
+     **/
     public String getAssertMessage(Condition con, Object actual) {
         String alias = con.getAliasOrName();
         if (con instanceof AggregateCondition) {
