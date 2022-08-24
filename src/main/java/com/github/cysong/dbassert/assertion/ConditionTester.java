@@ -2,11 +2,9 @@ package com.github.cysong.dbassert.assertion;
 
 import com.github.cysong.dbassert.constant.Comparator;
 import com.github.cysong.dbassert.expression.Boundary;
+import com.github.cysong.dbassert.utitls.Utils;
 
-import java.util.Arrays;
-import java.util.Collection;
-import java.util.Iterator;
-import java.util.Objects;
+import java.util.*;
 import java.util.function.Predicate;
 
 /**
@@ -49,12 +47,36 @@ public class ConditionTester {
                 return matches(actual, expected);
             case NOT_MATCH:
                 return notMatch(actual, expected);
-            case ANY_MATCH:
-                return anyMatch(actual, expected);
             case CONTAINS:
                 return contains(actual, expected);
             case NOT_CONTAIN:
                 return notContain(actual, expected);
+            case LIST_IS_EMPTY:
+                return Utils.isEmpty((List) actual);
+            case LIST_NOT_EMPTY:
+                return Utils.isNotEmpty((List) actual);
+            case LIST_HAS_SIZE:
+                return actual != null && compare(((List) actual).size(), expected) == 0;
+            case LIST_EQUALS:
+                return listEquals(actual, expected);
+            case LIST_EQUALS_AT_ANY_ORDER:
+                return listEqualsAtAnyOrder(actual, expected);
+            case LIST_NOT_EQUAL:
+                return listNotEqual(actual, expected);
+            case LIST_CONTAINS:
+                return listContains(actual, expected);
+            case LIST_NOT_CONTAIN:
+                return listNotContain(actual, expected);
+            case LIST_CONTAINS_ANY:
+                return listContainsAny(actual, expected);
+            case LIST_IS_ORDERED_ASC:
+                return listIsOrderedAsc(actual);
+            case LIST_IS_ORDERED_DESC:
+                return listIsOrderedDesc(actual);
+            case LIST_MATCHES:
+                return listMatches(actual, expected);
+            case LIST_NOT_MATCH:
+                return listNotMatch(actual, expected);
             default:
                 throw new IllegalArgumentException("Unrecognized Comparator:" + comparator.name());
         }
@@ -187,15 +209,6 @@ public class ConditionTester {
         }
         if (actual instanceof String) {
             return ((String) actual).contains((String) expected);
-        } else if (actual instanceof Collection) {
-            Collection<?> coll = (Collection<?>) actual;
-            Iterator<?> it = ((Iterable<?>) expected).iterator();
-            while (it.hasNext()) {
-                if (!coll.contains(it.next())) {
-                    return false;
-                }
-            }
-            return true;
         } else {
             throw new IllegalArgumentException(Comparator.CONTAINS.name() + " not support type:" + actual.getClass().getName());
         }
@@ -207,15 +220,6 @@ public class ConditionTester {
         }
         if (actual instanceof String) {
             return !((String) actual).contains((String) expected);
-        } else if (actual instanceof Collection) {
-            Collection<?> coll = (Collection<?>) actual;
-            Iterator<?> it = ((Iterable<?>) expected).iterator();
-            while (it.hasNext()) {
-                if (coll.contains(it.next())) {
-                    return false;
-                }
-            }
-            return true;
         } else {
             throw new IllegalArgumentException(Comparator.CONTAINS.name() + " not support type:" + actual.getClass().getName());
         }
@@ -241,13 +245,137 @@ public class ConditionTester {
         }
     }
 
-    public static boolean anyMatch(Object actual, Object expected) {
-        Predicate<Object> predicate = (Predicate<Object>) expected;
-        if (actual instanceof Collection) {
-            Collection<?> collection = (Collection<?>) actual;
-            return collection.stream().anyMatch(predicate);
-        } else {
-            return predicate.test(actual);
+    public static boolean listEquals(Object actual, Object expected) {
+        if (actual == null) {
+            return expected == null || !((Iterable<?>) expected).iterator().hasNext();
         }
+        Iterator<?> a = ((Iterable<?>) actual).iterator();
+        Iterator<?> e = ((Iterable<?>) expected).iterator();
+        while (a.hasNext()) {
+            if (!(e.hasNext() && Objects.equals(a.next(), e.next()))) {
+                return false;
+            }
+        }
+        return !e.hasNext();
     }
+
+    public static boolean listNotEqual(Object actual, Object expected) {
+        if (actual == null) {
+            return !(expected != null && ((Iterable<?>) expected).iterator().hasNext());
+        }
+        Iterator<?> a = ((Iterable<?>) actual).iterator();
+        Iterator<?> e = ((Iterable<?>) expected).iterator();
+        while (a.hasNext()) {
+            if (!(e.hasNext() && Objects.equals(a.next(), e.next()))) {
+                return true;
+            }
+        }
+        return e.hasNext();
+    }
+
+    public static boolean listEqualsAtAnyOrder(Object actual, Object expected) {
+        if (actual == null) {
+            return expected == null || !((Iterable<?>) expected).iterator().hasNext();
+        }
+        Iterator<?> a = ((Iterable<?>) actual).iterator();
+        List<Object> eList = new ArrayList<>();
+        ((Iterable<?>) expected).forEach(item -> eList.add(item));
+        while (a.hasNext()) {
+            Object aValue = a.next();
+            Iterator<Object> e = eList.iterator();
+            boolean match = false;
+            while (e.hasNext()) {
+                if (Objects.equals(aValue, e.next())) {
+                    e.remove();
+                    match = true;
+                    break;
+                }
+            }
+            if (!match) {
+                return false;
+            }
+        }
+        return eList.size() == 0;
+    }
+
+    public static boolean listContains(Object actual, Object expected) {
+        if (actual == null) {
+            return false;
+        }
+        List<?> aList = (List) actual;
+        Iterator<?> e = ((Iterable<?>) expected).iterator();
+        while (e.hasNext()) {
+            if (!aList.contains(e.next())) {
+                return false;
+            }
+        }
+        return true;
+    }
+
+    public static boolean listNotContain(Object actual, Object expected) {
+        if (actual == null) {
+            return true;
+        }
+        List<?> aList = (List) actual;
+        Iterator<?> e = ((Iterable<?>) expected).iterator();
+        while (e.hasNext()) {
+            if (aList.contains(e.next())) {
+                return false;
+            }
+        }
+        return true;
+    }
+
+    public static boolean listContainsAny(Object actual, Object expected) {
+        if (actual == null) {
+            return false;
+        }
+        List<?> aList = (List) actual;
+        Iterator<?> e = ((Iterable<?>) expected).iterator();
+        while (e.hasNext()) {
+            if (aList.contains(e.next())) {
+                return true;
+            }
+        }
+        return false;
+    }
+
+    public static boolean listIsOrderedAsc(Object actual) {
+        if (actual == null) {
+            return true;
+        }
+        List<?> aList = (List<?>) actual;
+        for (int i = 0; i < aList.size() - 1; i++) {
+            if (compare(aList.get(i), aList.get(i + 1)) == 1) {
+                return false;
+            }
+        }
+        return true;
+    }
+
+    public static boolean listIsOrderedDesc(Object actual) {
+        if (actual == null) {
+            return true;
+        }
+        List<?> aList = (List<?>) actual;
+        for (int i = 0; i < aList.size() - 1; i++) {
+            if (compare(aList.get(i), aList.get(i + 1)) == -1) {
+                return false;
+            }
+        }
+        return true;
+    }
+
+    public static boolean listMatches(Object actual, Object expected) {
+        List<?> param = actual == null ? new ArrayList<>(0) : (List<?>) actual;
+        Predicate<List> predicate = (Predicate<List>) expected;
+        return predicate.test(param);
+    }
+
+    public static boolean listNotMatch(Object actual, Object expected) {
+        List<?> param = actual == null ? new ArrayList<>(0) : (List<?>) actual;
+        Predicate<List> predicate = (Predicate<List>) expected;
+        return !predicate.test(param);
+    }
+
 }

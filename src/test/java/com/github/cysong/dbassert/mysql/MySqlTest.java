@@ -13,6 +13,7 @@ import org.testng.annotations.Test;
 import java.io.IOException;
 import java.sql.Connection;
 import java.sql.SQLException;
+import java.util.ArrayList;
 import java.util.Arrays;
 
 /**
@@ -203,6 +204,46 @@ public class MySqlTest {
                 .where("id", 1)
                 .col("name")
                 .notMatch(name -> ((String) name).equals("bob"))
+                .run();
+    }
+
+    @Test
+    public void testListAssertion() {
+        DbAssert.create(dbKey)
+                .table(TestConstants.DEFAULT_TABLE_NAME)
+                .where("gender", "M")
+                .orderBy("id")
+                .col("name")
+                .listNotEmpty()
+                .listHasSize(2)
+                .listEquals(Arrays.asList("bob", "carl"))
+                .listEqualAtAnyOrder(Arrays.asList("carl", "bob"))
+                .listNotEqual(Arrays.asList("bob", "carl", null))
+                .listNotEqual(Arrays.asList("carl", "bob"))
+                .listNotEqual(Arrays.asList("bob"))
+                .listNotEqual(Arrays.asList("alice"))
+                .listContains(Arrays.asList("bob"))
+                .listNotContain(Arrays.asList("alice"))
+                .listContainsAny(Arrays.asList("alice", "bob"))
+                .col("id")
+                .listIsOrderedAsc()
+                .listMatches(list -> list.size() == 2)
+                .listNotMatch(list -> list.size() == 1)
+                .col("age")
+                .listEquals(Arrays.asList(20, null))
+                .listEqualAtAnyOrder(Arrays.asList(null, 20))
+                .listNotEqual(Arrays.asList(20, null, null))
+                .listNotEqual(Arrays.asList(null, 20))
+                .listNotEqual(Arrays.asList(20))
+                .listContains(Arrays.asList(20))
+                .listContains(new ArrayList())
+                .listContains(new ArrayList<Object>() {
+                    {
+                        add(null);
+                    }
+                })
+                .listNotContain(Arrays.asList(1))
+                .listContainsAny(Arrays.asList(1, null))
                 .run();
     }
 

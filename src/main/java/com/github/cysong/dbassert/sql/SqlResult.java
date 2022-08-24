@@ -2,10 +2,12 @@ package com.github.cysong.dbassert.sql;
 
 import com.github.cysong.dbassert.expression.AggregateCondition;
 import com.github.cysong.dbassert.expression.Condition;
+import com.github.cysong.dbassert.expression.ListCondition;
 import com.github.cysong.dbassert.utitls.Utils;
 
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 
 /**
  * return value of sqlbuilder
@@ -16,6 +18,8 @@ import java.util.Map;
 public class SqlResult {
 
     private Map<String, List<Condition>> columns;
+    private Map<String, List<ListCondition>> listColumns;
+    private Set<String> columnSet;
     private Map<String, List<AggregateCondition>> aggColumns;
     private List<String> wrapAggColumns;
     private String detailSql;
@@ -35,6 +39,22 @@ public class SqlResult {
 
     public void setColumns(Map<String, List<Condition>> columns) {
         this.columns = columns;
+    }
+
+    public Map<String, List<ListCondition>> getListColumns() {
+        return listColumns;
+    }
+
+    public void setListColumns(Map<String, List<ListCondition>> listColumns) {
+        this.listColumns = listColumns;
+    }
+
+    public Set<String> getColumnSet() {
+        return columnSet;
+    }
+
+    public void setColumnSet(Set<String> columnSet) {
+        this.columnSet = columnSet;
     }
 
     public Map<String, List<AggregateCondition>> getAggColumns() {

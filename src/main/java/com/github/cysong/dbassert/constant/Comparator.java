@@ -30,9 +30,21 @@ public enum Comparator {
     NOT_IN("not in", "{0} expected not in {1}, actual is {2}"),
     MATCHES("matches", "{0} expected matches <Predicate>, actual is {1}"),
     NOT_MATCH("not match", "{0} expected not match <Predicate>, actual is {1}"),
-    ANY_MATCH("any element matches", "{0} expected any element matches <Predicate>, actual is {1}"),
     CONTAINS("contains", "{0} expected contains {1}, actual is {2}"),
     NOT_CONTAIN("not contain", "{0} expected not contain {1}, actual is {2}"),
+    LIST_IS_EMPTY("is empty", "list {0} expected to be empty, actual is {2}"),
+    LIST_NOT_EMPTY("is not empty", "list {0} expected not to be empty, actual is {2}"),
+    LIST_HAS_SIZE("has the size of given", "list of {0} expected has size of {1}, actual is {2}"),
+    LIST_EQUALS("all elements equal at order", "list of {0} expected all elements equal {1}, actual is {2}"),
+    LIST_NOT_EQUAL("not all elements equal at order", "list of {0} expected not all elements equal {1}, actual is {2}"),
+    LIST_EQUALS_AT_ANY_ORDER("all elements equal at any order", "list of {0} expected all elements equal(any order) {1}, actual is {2}"),
+    LIST_CONTAINS("contains all elements", "list of {0} expected contains all elements of {1}, actual is {2}"),
+    LIST_NOT_CONTAIN("not contain any elements", "list of {0} expected not contain any element of {1}, actual is {2}"),
+    LIST_CONTAINS_ANY("contains any of given elements", "list of {0} expected contains any elements of {1}, actual is {2}"),
+    LIST_IS_ORDERED_ASC("is ordered ascending", "list of {0} expected ordered ascending {1}, actual is {2}"),
+    LIST_IS_ORDERED_DESC("is ordered descending", "list of {0} expected ordered descending {1}, actual is {2}"),
+    LIST_MATCHES("entire list matches", "list {0} expected matches <Predicate>, actual is {2}"),
+    LIST_NOT_MATCH("entire list not match", "list {0} expected not match <Predicate>, actual is {2}"),
     JSON_EQUAL("value(extract by jsonpath) equal to", "property(jsonpath {3}) value of {0} expected equal {1}, actual is {2} ");
 
     private String desc;

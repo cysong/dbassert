@@ -487,16 +487,6 @@ public class DbAssert {
         return this;
     }
 
-    public DbAssert contains(Iterable expected) {
-        this.addCondition(Comparator.CONTAINS, expected);
-        return this;
-    }
-
-    public DbAssert notContain(Object expected) {
-        this.addCondition(Comparator.NOT_CONTAIN, expected);
-        return this;
-    }
-
     /**
      * Each column(specified by col()) values is expected matches predicate
      *
@@ -525,9 +515,168 @@ public class DbAssert {
         return this;
     }
 
-    public DbAssert anyMatch(Predicate predicate) {
-        assert predicate != null;
-        this.addCondition(Comparator.ANY_MATCH, predicate);
+    /**
+     * List of column(specified by col()) values is expected empty
+     *
+     * @return com.github.cysong.dbassert.DbAssert
+     * @author cysong
+     * @date 2022/8/23 16:02
+     **/
+    public DbAssert listIsEmpty() {
+        this.addListCondition(Comparator.LIST_IS_EMPTY, null);
+        return this;
+    }
+
+    /**
+     * List of column(specified by col()) values is expected not empty
+     *
+     * @return com.github.cysong.dbassert.DbAssert
+     * @author cysong
+     * @date 2022/8/23 16:03
+     **/
+    public DbAssert listNotEmpty() {
+        this.addListCondition(Comparator.LIST_NOT_EMPTY, null);
+        return this;
+    }
+
+    /**
+     * List of column(specified by col()) values is expected has the size of expected
+     *
+     * @param expected
+     * @return com.github.cysong.dbassert.DbAssert
+     * @author cysong
+     * @date 2022/8/23 16:03
+     **/
+    public DbAssert listHasSize(int expected) {
+        this.addListCondition(Comparator.LIST_HAS_SIZE, expected);
+        return this;
+    }
+
+    /**
+     * All column(specified by col()) values is expected equal to expected(at the order of returned)
+     *
+     * @param expected
+     * @return com.github.cysong.dbassert.DbAssert
+     * @author cysong
+     * @date 2022/8/23 16:04
+     **/
+    public DbAssert listEquals(Iterable expected) {
+        this.addListCondition(Comparator.LIST_EQUALS, expected);
+        return this;
+    }
+
+    /**
+     * All column(specified by col()) values is expected not equal to expected(at the order of returned)
+     *
+     * @param expected
+     * @return com.github.cysong.dbassert.DbAssert
+     * @author cysong
+     * @date 2022/8/23 16:04
+     **/
+    public DbAssert listNotEqual(Iterable expected) {
+        this.addListCondition(Comparator.LIST_NOT_EQUAL, expected);
+        return this;
+    }
+
+    /**
+     * All column(specified by col()) values is expected equal to expected(at any order)
+     *
+     * @param expected
+     * @return com.github.cysong.dbassert.DbAssert
+     * @author cysong
+     * @date 2022/8/23 16:05
+     **/
+    public DbAssert listEqualAtAnyOrder(Iterable expected) {
+        this.addListCondition(Comparator.LIST_EQUALS_AT_ANY_ORDER, expected);
+        return this;
+    }
+
+    /**
+     * All column(specified by col()) values is expected contains all elements of expected
+     *
+     * @param expected
+     * @return com.github.cysong.dbassert.DbAssert
+     * @author cysong
+     * @date 2022/8/23 16:06
+     **/
+    public DbAssert listContains(Iterable expected) {
+        this.addListCondition(Comparator.LIST_CONTAINS, expected);
+        return this;
+    }
+
+    /**
+     * All column(specified by col()) values is expected not contains any element of expected(at any order)
+     *
+     * @param expected
+     * @return com.github.cysong.dbassert.DbAssert
+     * @author cysong
+     * @date 2022/8/23 16:07
+     **/
+    public DbAssert listNotContain(Iterable expected) {
+        this.addListCondition(Comparator.LIST_NOT_CONTAIN, expected);
+        return this;
+    }
+
+    /**
+     * All column(specified by col()) values is expected contains any elements of expected
+     *
+     * @param expected
+     * @return com.github.cysong.dbassert.DbAssert
+     * @author cysong
+     * @date 2022/8/23 16:08
+     **/
+    public DbAssert listContainsAny(Iterable expected) {
+        this.addListCondition(Comparator.LIST_CONTAINS_ANY, expected);
+        return this;
+    }
+
+    /**
+     * All column(specified by col()) values is expected ordered ascending
+     *
+     * @return com.github.cysong.dbassert.DbAssert
+     * @author cysong
+     * @date 2022/8/23 16:11
+     **/
+    public DbAssert listIsOrderedAsc() {
+        this.addListCondition(Comparator.LIST_IS_ORDERED_ASC, null);
+        return this;
+    }
+
+    /**
+     * All column(specified by col()) values is expected ordered descending
+     *
+     * @return com.github.cysong.dbassert.DbAssert
+     * @author cysong
+     * @date 2022/8/23 16:11
+     **/
+    public DbAssert listIsOrderedDesc() {
+        this.addListCondition(Comparator.LIST_IS_ORDERED_DESC, null);
+        return this;
+    }
+
+    /**
+     * List of column(specified by col()) values is expected matches predicate
+     *
+     * @param predicate
+     * @return com.github.cysong.dbassert.DbAssert
+     * @author cysong
+     * @date 2022/8/23 16:12
+     **/
+    public DbAssert listMatches(Predicate<List> predicate) {
+        this.addListCondition(Comparator.LIST_MATCHES, predicate);
+        return this;
+    }
+
+    /**
+     * List of column(specified by col()) values is expected not match predicate
+     *
+     * @param predicate
+     * @return com.github.cysong.dbassert.DbAssert
+     * @author cysong
+     * @date 2022/8/23 16:13
+     **/
+    public DbAssert listNotMatch(Predicate<List> predicate) {
+        this.addListCondition(Comparator.LIST_NOT_MATCH, predicate);
         return this;
     }
 
@@ -885,6 +1034,15 @@ public class DbAssert {
             throw new IllegalStateException("Must call col method first");
         }
         Condition condition = Condition.create(currentObject.getName(), comparator, expected);
+        this.currentConditions.add(condition);
+        return condition;
+    }
+
+    private Condition addListCondition(Comparator comparator, Object expected) {
+        if (currentObject == null || !(currentObject instanceof Column)) {
+            throw new IllegalStateException("Must call col method first");
+        }
+        ListCondition condition = ListCondition.create(currentObject.getName(), comparator, expected);
         this.currentConditions.add(condition);
         return condition;
     }

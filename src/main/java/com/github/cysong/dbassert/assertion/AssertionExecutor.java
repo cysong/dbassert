@@ -4,6 +4,7 @@ import com.github.cysong.dbassert.constant.Aggregate;
 import com.github.cysong.dbassert.constant.Constants;
 import com.github.cysong.dbassert.expression.AggregateCondition;
 import com.github.cysong.dbassert.expression.Condition;
+import com.github.cysong.dbassert.expression.ListCondition;
 import com.github.cysong.dbassert.sql.SqlBuilder;
 import com.github.cysong.dbassert.sql.SqlBuilderFactory;
 import com.github.cysong.dbassert.sql.SqlResult;
@@ -15,6 +16,8 @@ import java.sql.Connection;
 import java.sql.DatabaseMetaData;
 import java.sql.ResultSet;
 import java.sql.SQLException;
+import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
@@ -101,7 +104,7 @@ public class AssertionExecutor {
             String detailSql = result.getDetailSql();
             if (detailSql != null) {
                 ResultSet detailRs = assertion.getConn().prepareStatement(detailSql).executeQuery();
-                if (!verifyDetails(detailRs, result.getColumns(), isFinal)) {
+                if (!verifyDetails(detailRs, result, isFinal)) {
                     detailRs.close();
                     continue;
                 }
@@ -168,23 +171,46 @@ public class AssertionExecutor {
     /**
      * verify column details
      *
-     * @param rs        result set return by query
-     * @param columnMap column map group by column name
-     * @param isFinal   determine throw AssertionError or print log when verify fail
+     * @param rs      result set return by query
+     * @param result  sql build result
+     * @param isFinal determine throw AssertionError or print log when verify fail
      * @return boolean
      * @author cysong
      * @date 2022/8/23 9:35
      **/
-    private boolean verifyDetails(ResultSet rs, Map<String, List<Condition>> columnMap, boolean isFinal) throws SQLException {
+    private boolean verifyDetails(ResultSet rs, SqlResult result, boolean isFinal) throws SQLException {
+        Map<String, List<Object>> valueMap = new HashMap<>(result.getColumnSet().size());
+        Map<String, List<Condition>> columnMap = result.getColumns();
         while (rs.next()) {
-            for (String col : columnMap.keySet()) {
-                List<Condition> conditions = columnMap.get(col);
-                for (Condition condition : conditions) {
-                    Object actual = rs.getObject(col);
-                    if (!ConditionTester.test(condition.getComparator(), actual, condition.getExpected())) {
-                        this.doAssert(isFinal, () -> condition.getAssertMessage(actual));
-                        return false;
+            for (String col : result.getColumnSet()) {
+                Object value = rs.getObject(col);
+                valueMap.compute(col, (key, val) -> {
+                    if (val == null) {
+                        val = new ArrayList<>();
                     }
+                    val.add(value);
+                    return val;
+                });
+
+                if (columnMap.containsKey(col)) {
+                    List<Condition> conditions = result.getColumns().get(col);
+                    for (Condition condition : conditions) {
+                        if (!ConditionTester.test(condition.getComparator(), value, condition.getExpected())) {
+                            this.doAssert(isFinal, () -> condition.getAssertMessage(value));
+                            return false;
+                        }
+                    }
+                }
+            }
+        }
+
+        Map<String, List<ListCondition>> listColumnMap = result.getListColumns();
+        for (String col : listColumnMap.keySet()) {
+            List<ListCondition> conditions = listColumnMap.get(col);
+            for (ListCondition condition : conditions) {
+                if (!ConditionTester.test(condition.getComparator(), valueMap.get(col), condition.getExpected())) {
+                    this.doAssert(isFinal, () -> condition.getAssertMessage(valueMap.get(col)));
+                    return false;
                 }
             }
         }
