@@ -32,6 +32,9 @@ public class SqlUtils {
                     conn.prepareStatement(sql).executeUpdate();
                 }
             }
+            if (!conn.getAutoCommit()) {
+                conn.commit();
+            }
         } catch (SQLException | IOException e) {
             throw new RuntimeException(e);
         }
@@ -67,6 +70,10 @@ public class SqlUtils {
                 String url = metaData.getURL();
                 String filename = url.substring(url.lastIndexOf(":") + 1);
                 conn.close();
+                //in memory db doesn't has a db file
+                if (Utils.isBlank(filename)) {
+                    return;
+                }
                 File dbFile = new File(filename);
                 if (dbFile.exists()) {
                     dbFile.delete();
@@ -75,5 +82,34 @@ public class SqlUtils {
         } catch (SQLException e) {
             throw new RuntimeException(e);
         }
+    }
+
+    /**
+     * get database product name by {@link DatabaseMetaData#getDatabaseProductName()}
+     *
+     * @param conn
+     * @return java.lang.String
+     * @author cysong
+     * @date 2022/8/24 14:27
+     **/
+    public static String getDatabaseProductName(Connection conn) {
+        try {
+            DatabaseMetaData metaData = conn.getMetaData();
+            return metaData.getDatabaseProductName();
+        } catch (SQLException e) {
+            throw new RuntimeException(e.getMessage(), e);
+        }
+    }
+
+    /**
+     * whether is sqlite database base on product name
+     *
+     * @param conn
+     * @return boolean
+     * @author cysong
+     * @date 2022/8/24 14:27
+     **/
+    public static boolean isSqlite(Connection conn) {
+        return "Sqlite".equalsIgnoreCase(getDatabaseProductName(conn));
     }
 }

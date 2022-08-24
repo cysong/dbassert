@@ -52,7 +52,7 @@ public class DefaultConnectionFactory implements ConnectionFactory {
         if (isConnValid(conn)) {
             return conn;
         } else {
-            log.info("Database[{}] connect is not valid, reconnect", dbKey);
+            log.info("Database[{}] connection is not valid, reconnect...", dbKey);
             connMap.remove(dbKey);
             initConnectionByDbKey(dbKey);
             conn = connMap.get(dbKey);

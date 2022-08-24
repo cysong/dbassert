@@ -5,15 +5,12 @@ import com.github.cysong.dbassert.constant.Constants;
 import com.github.cysong.dbassert.expression.AggregateCondition;
 import com.github.cysong.dbassert.expression.Condition;
 import com.github.cysong.dbassert.expression.ListCondition;
-import com.github.cysong.dbassert.sql.SqlBuilder;
-import com.github.cysong.dbassert.sql.SqlBuilderFactory;
+import com.github.cysong.dbassert.sql.SqlBuilderSelector;
 import com.github.cysong.dbassert.sql.SqlResult;
 import com.github.cysong.dbassert.utitls.Utils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.sql.Connection;
-import java.sql.DatabaseMetaData;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.ArrayList;
@@ -46,11 +43,7 @@ public class AssertionExecutor {
      * @date 2022/8/23 9:25
      **/
     public void run() throws SQLException {
-        Connection conn = assertion.getConn();
-        DatabaseMetaData md = conn.getMetaData();
-
-        SqlBuilder sqlBuilder = SqlBuilderFactory.getSqlBuilder(md.getDatabaseProductName());
-        SqlResult result = sqlBuilder.build(assertion);
+        SqlResult result = SqlBuilderSelector.getSqlBuilder(assertion).build();
 
         printSql(result);
 

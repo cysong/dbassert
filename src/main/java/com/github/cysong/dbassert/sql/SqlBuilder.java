@@ -1,7 +1,5 @@
 package com.github.cysong.dbassert.sql;
 
-import com.github.cysong.dbassert.assertion.Assertion;
-
 /**
  * interface define methods to build sql for any type of database
  *
@@ -13,12 +11,11 @@ public interface SqlBuilder {
     /**
      * build sql from assertion
      *
-     * @param assertion
      * @return com.github.cysong.dbassert.sql.SqlResult
      * @author cysong
      * @date 2022/8/23 10:14
      **/
-    SqlResult build(Assertion assertion);
+    SqlResult build();
 
     /**
      * suite for database verified by dbProductName if return true

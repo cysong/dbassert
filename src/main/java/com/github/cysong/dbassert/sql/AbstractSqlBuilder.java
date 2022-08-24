@@ -13,11 +13,14 @@ public abstract class AbstractSqlBuilder implements SqlBuilder {
     protected Assertion assertion;
     protected SqlResult result;
 
-    @Override
-    public SqlResult build(Assertion assertion) {
+    AbstractSqlBuilder(Assertion assertion) {
         this.assertion = assertion;
         this.result = SqlResult.create();
         parseSelectColumns();
+    }
+
+    @Override
+    public SqlResult build() {
         buildSql();
         return result;
     }

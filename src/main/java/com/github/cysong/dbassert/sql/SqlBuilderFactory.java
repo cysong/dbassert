@@ -1,28 +1,35 @@
 package com.github.cysong.dbassert.sql;
 
-import com.github.cysong.dbassert.exception.SqlBuilderNotFoundException;
+import com.github.cysong.dbassert.assertion.Assertion;
 
-import java.util.Iterator;
-import java.util.ServiceLoader;
+import java.sql.DatabaseMetaData;
 
 /**
- * factory for generate sqlbuilder by database product name
+ * factory interface for creating sql builder instance
  *
  * @author cysong
- * @date 2022/08/22 15:50
+ * @date 2022/8/24 13:33
  **/
-public class SqlBuilderFactory {
-    private static final ServiceLoader<SqlBuilder> loader = ServiceLoader.load(SqlBuilder.class);
+public interface SqlBuilderFactory {
 
-    public static synchronized SqlBuilder getSqlBuilder(String dbProductName) {
-        Iterator<SqlBuilder> it = loader.iterator();
-        while (it.hasNext()) {
-            SqlBuilder sqlBuilder = it.next();
-            if (sqlBuilder.match(dbProductName)) {
-                return sqlBuilder;
-            }
-        }
-        throw new SqlBuilderNotFoundException(String.format("SqlBuilder for db %s not found", dbProductName));
-    }
+    /**
+     * create new instance of sql builder
+     *
+     * @param assertion assertion
+     * @return com.github.cysong.dbassert.sql.SqlBuilder
+     * @author cysong
+     * @date 2022/8/24 13:35
+     **/
+    SqlBuilder newInstance(Assertion assertion);
+
+    /**
+     * test whether this instance suite from given database by dbProductName
+     *
+     * @param dbProductName database product name return by {@link DatabaseMetaData#getDatabaseProductName()}
+     * @return boolean
+     * @author cysong
+     * @date 2022/8/24 13:36
+     **/
+    boolean matches(String dbProductName);
 
 }

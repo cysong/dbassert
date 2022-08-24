@@ -1,5 +1,6 @@
 package com.github.cysong.dbassert.sql;
 
+import com.github.cysong.dbassert.assertion.Assertion;
 import com.github.cysong.dbassert.constant.Constants;
 import com.github.cysong.dbassert.exception.ConfigurationException;
 import com.github.cysong.dbassert.expression.AbstractFilter;
@@ -17,6 +18,10 @@ import java.util.stream.Collectors;
  * @date 2022/08/22 15:50
  **/
 public class MysqlBuilder extends AbstractSqlBuilder {
+
+    MysqlBuilder(Assertion assertion) {
+        super(assertion);
+    }
 
     @Override
     protected void buildSql() {
