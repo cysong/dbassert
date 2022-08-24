@@ -47,11 +47,6 @@ public class DbAssertTest {
     private void initDbByKey(String dbKey) {
         Connection conn = DbAssertOptions.getGlobal().getFactory().getConnectionByDbKey(dbKey);
         TestUtils.initDb(conn);
-        try {
-            conn.close();
-        } catch (SQLException e) {
-            throw new RuntimeException(e);
-        }
     }
 
     @Test(dataProvider = DB_PROVIDER, timeOut = 1000)
@@ -349,8 +344,11 @@ public class DbAssertTest {
         dbKeys.forEach(dbKey -> {
             try {
                 Connection conn = DbAssertOptions.getGlobal().getFactory().getConnectionByDbKey(dbKey);
-                SqlUtils.deleteTable(conn, TestConstants.DEFAULT_TABLE_NAME);
-                SqlUtils.deleteDbFileIfSqlite(conn);
+                if (SqlUtils.isSqlite(conn)) {
+                    SqlUtils.deleteDbFileIfSqlite(conn);
+                } else {
+                    SqlUtils.deleteTable(conn, TestConstants.DEFAULT_TABLE_NAME);
+                }
             } catch (Throwable t) {
                 log.error(t.getMessage(), t);
             }
