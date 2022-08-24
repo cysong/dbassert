@@ -1,46 +1,62 @@
-package com.github.cysong.dbassert.sqlite;
+package com.github.cysong.dbassert;
 
-import com.github.cysong.dbassert.DbAssert;
-import com.github.cysong.dbassert.TestConstants;
-import com.github.cysong.dbassert.TestUtils;
+import com.github.cysong.dbassert.assertion.AssertionExecutor;
+import com.github.cysong.dbassert.option.DbAssertOptions;
+import com.github.cysong.dbassert.utitls.SqlUtils;
 import com.github.cysong.dbassert.utitls.Utils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.testng.Assert;
 import org.testng.annotations.AfterClass;
 import org.testng.annotations.BeforeClass;
+import org.testng.annotations.DataProvider;
 import org.testng.annotations.Test;
 
-import java.io.File;
-import java.io.IOException;
 import java.sql.Connection;
-import java.sql.DriverManager;
 import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Iterator;
+import java.util.List;
+import java.util.stream.Collectors;
 
 /**
- * Sqlite testcases
+ * MySql testcases
  *
  * @author cysong
  * @date 2022/08/22 15:50
  */
-public class SqliteTest {
-    private static final Logger log = LoggerFactory.getLogger(SqliteTest.class);
-    private static final String dbFile = "sqlite.db";
-    private static Connection conn;
+@Test(dataProvider = DbAssertTest.DB_PROVIDER)
+public class DbAssertTest {
+    private static final Logger log = LoggerFactory.getLogger(AssertionExecutor.class);
+    public static final String DB_PROVIDER = "dbProvider";
+    private static final List<String> dbKeys = Arrays.asList("sqlite", "mysql");
 
-    @BeforeClass
-    public static void setup() throws SQLException, IOException {
-        String url = "jdbc:sqlite:" + dbFile;
-        conn = DriverManager.getConnection(url);
-
-        TestUtils.initDb(conn);
+    @DataProvider(name = DB_PROVIDER, parallel = true)
+    public Iterator<Object[]> dbProvider() {
+        return dbKeys.stream().map(dbKey -> new Object[]{dbKey})
+                .collect(Collectors.toList())
+                .iterator();
     }
 
-    @Test(timeOut = 1000)
-    public void testNotRetry() {
-        DbAssert.create(conn)
+    @BeforeClass()
+    public void setup() {
+        dbKeys.forEach(dbKey -> this.initDbByKey(dbKey));
+    }
+
+    private void initDbByKey(String dbKey) {
+        Connection conn = DbAssertOptions.getGlobal().getFactory().getConnectionByDbKey(dbKey);
+        TestUtils.initDb(conn);
+        try {
+            conn.close();
+        } catch (SQLException e) {
+            throw new RuntimeException(e);
+        }
+    }
+
+    @Test(dataProvider = DB_PROVIDER, timeOut = 1000)
+    public void testNotRetry(String dbKey) {
+        DbAssert.create(dbKey)
                 .retry(false)
                 .table(TestConstants.DEFAULT_TABLE_NAME)
                 .where("id", 1)
@@ -49,18 +65,18 @@ public class SqliteTest {
                 .run();
     }
 
-    @Test
-    public void testRetry() {
+    public void testRetry(String dbKey) {
         new Thread(() -> {
             Utils.sleep(6000);
             try {
+                Connection conn = DbAssertOptions.getGlobal().getFactory().getConnectionByDbKey(dbKey);
                 conn.prepareStatement("update person set name = 'cole' where id=3").executeUpdate();
             } catch (SQLException e) {
                 e.printStackTrace();
             }
         }).start();
         long start = System.currentTimeMillis();
-        DbAssert.create(conn)
+        DbAssert.create(dbKey)
                 .table(TestConstants.DEFAULT_TABLE_NAME)
                 .where("id", 3)
                 .col("name").as("person name").isEqual("cole")
@@ -68,21 +84,20 @@ public class SqliteTest {
         Assert.assertTrue(System.currentTimeMillis() - start > 6000);
     }
 
-    @Test
-    public void testFilter() {
-        DbAssert.create(conn)
+    public void testFilter(String dbKey) {
+        DbAssert.create(dbKey)
                 .table(TestConstants.DEFAULT_TABLE_NAME)
                 .where("name", "alice")
                 .col("id")
                 .isEqual(1)
                 .run();
-        DbAssert.create(conn)
+        DbAssert.create(dbKey)
                 .table(TestConstants.DEFAULT_TABLE_NAME)
                 .where("name", "alice")
                 .and("id", 1)
                 .rowsEqual(1)
                 .run();
-        DbAssert.create(conn)
+        DbAssert.create(dbKey)
                 .table(TestConstants.DEFAULT_TABLE_NAME)
                 .where("name='alice'")
                 .col("id")
@@ -90,9 +105,8 @@ public class SqliteTest {
                 .run();
     }
 
-    @Test
-    public void testStringColumnAssertion() {
-        DbAssert.create(conn)
+    public void testStringColumnAssertion(String dbKey) {
+        DbAssert.create(dbKey)
                 .table(TestConstants.DEFAULT_TABLE_NAME)
                 .where("id", 1)
                 .col("name")
@@ -108,9 +122,8 @@ public class SqliteTest {
                 .run();
     }
 
-    @Test
-    public void testIntegerColumnAssertion() {
-        DbAssert.create(conn)
+    public void testIntegerColumnAssertion(String dbKey) {
+        DbAssert.create(dbKey)
                 .table(TestConstants.DEFAULT_TABLE_NAME)
                 .where("id", 1)
                 .col("age").isNotNull()
@@ -126,9 +139,8 @@ public class SqliteTest {
                 .run();
     }
 
-    @Test
-    public void testFloatColumnAssertion() {
-        DbAssert.create(conn)
+    public void testFloatColumnAssertion(String dbKey) {
+        DbAssert.create(dbKey)
                 .table(TestConstants.DEFAULT_TABLE_NAME)
                 .where("id", 1)
                 .col("weight").isNotNull()
@@ -142,9 +154,8 @@ public class SqliteTest {
                 .run();
     }
 
-    @Test
-    public void testDoubleColumnAssertion() {
-        DbAssert.create(conn)
+    public void testDoubleColumnAssertion(String dbKey) {
+        DbAssert.create(dbKey)
                 .table(TestConstants.DEFAULT_TABLE_NAME)
                 .where("id", 1)
                 .col("height")
@@ -158,22 +169,21 @@ public class SqliteTest {
                 .run();
     }
 
-    @Test
-    public void testBooleanColumnAssertion() {
-        DbAssert.create(conn)
+    public void testBooleanColumnAssertion(String dbKey) {
+        DbAssert.create(dbKey)
                 .table(TestConstants.DEFAULT_TABLE_NAME)
                 .where("id", 1)
                 .col("adult")
                 .isNotNull()
                 .isFalse()
                 .run();
-        DbAssert.create(conn)
+        DbAssert.create(dbKey)
                 .table(TestConstants.DEFAULT_TABLE_NAME)
                 .where("id", 2)
                 .col("adult")
                 .isTrue()
                 .run();
-        DbAssert.create(conn)
+        DbAssert.create(dbKey)
                 .table(TestConstants.DEFAULT_TABLE_NAME)
                 .where("id", 3)
                 .col("adult")
@@ -181,9 +191,8 @@ public class SqliteTest {
                 .run();
     }
 
-    @Test
-    public void testInCondition() {
-        DbAssert.create(conn)
+    public void testInCondition(String dbKey) {
+        DbAssert.create(dbKey)
                 .table(TestConstants.DEFAULT_TABLE_NAME)
                 .where("id", 1)
                 .col("gender")
@@ -192,15 +201,14 @@ public class SqliteTest {
                 .run();
     }
 
-    @Test
-    public void testMatches() {
-        DbAssert.create(conn)
+    public void testMatches(String dbKey) {
+        DbAssert.create(dbKey)
                 .table(TestConstants.DEFAULT_TABLE_NAME)
                 .where("id", 1)
                 .col("name")
                 .matches(name -> ((String) name).equals("alice"))
                 .run();
-        DbAssert.create(conn)
+        DbAssert.create(dbKey)
                 .table(TestConstants.DEFAULT_TABLE_NAME)
                 .where("id", 1)
                 .col("name")
@@ -208,9 +216,8 @@ public class SqliteTest {
                 .run();
     }
 
-    @Test
-    public void testListAssertion() {
-        DbAssert.create(conn)
+    public void testListAssertion(String dbKey) {
+        DbAssert.create(dbKey)
                 .table(TestConstants.DEFAULT_TABLE_NAME)
                 .where("gender", "M")
                 .orderBy("id")
@@ -258,10 +265,10 @@ public class SqliteTest {
                 .run();
     }
 
-    @Test
-    public void testRowsAssertion() throws SQLException {
+    public void testRowsAssertion(String dbKey) throws SQLException {
+        Connection conn = DbAssertOptions.getGlobal().getFactory().getConnectionByDbKey(dbKey);
         long totalRows = TestUtils.getTotalRowsOfTable(conn, TestConstants.DEFAULT_TABLE_NAME);
-        DbAssert.create(conn)
+        DbAssert.create(dbKey)
                 .table(TestConstants.DEFAULT_TABLE_NAME)
                 .rowsEqual(totalRows)
                 .rowsGreaterThan(totalRows - 1)
@@ -275,9 +282,8 @@ public class SqliteTest {
                 .run();
     }
 
-    @Test
-    public void testCountAssertion() {
-        DbAssert.create(conn)
+    public void testCountAssertion(String dbKey) {
+        DbAssert.create(dbKey)
                 .table(TestConstants.DEFAULT_TABLE_NAME)
                 .where("gender", "M")
                 .col("gender")
@@ -285,9 +291,8 @@ public class SqliteTest {
                 .run();
     }
 
-    @Test
-    public void testDistinctCountAssertion() {
-        DbAssert.create(conn)
+    public void testDistinctCountAssertion(String dbKey) {
+        DbAssert.create(dbKey)
                 .table(TestConstants.DEFAULT_TABLE_NAME)
                 .col("gender")
                 .distinctCountEqual(2)
@@ -300,9 +305,8 @@ public class SqliteTest {
                 .run();
     }
 
-    @Test
-    public void testSuccessIfNotFound() {
-        DbAssert.create(conn)
+    public void testSuccessIfNotFound(String dbKey) {
+        DbAssert.create(dbKey)
                 .table(TestConstants.DEFAULT_TABLE_NAME)
                 .retry(false)
                 .failIfNotFound(false)
@@ -311,9 +315,9 @@ public class SqliteTest {
                 .run();
     }
 
-    @Test(expectedExceptions = AssertionError.class)
-    public void testFailIfNotFound() {
-        DbAssert.create(conn)
+    @Test(dataProvider = DB_PROVIDER, expectedExceptions = AssertionError.class)
+    public void testFailIfNotFound(String dbKey) {
+        DbAssert.create(dbKey)
                 .table(TestConstants.DEFAULT_TABLE_NAME)
                 .retry(false)
                 .failIfNotFound(true)
@@ -323,8 +327,8 @@ public class SqliteTest {
     }
 
     @Test
-    public void testAggregateAssertion() {
-        DbAssert.create(conn)
+    public void testAggregateAssertion(String dbKey) {
+        DbAssert.create(dbKey)
                 .table(TestConstants.DEFAULT_TABLE_NAME)
                 .where("name", "bob")
                 .col("name")
@@ -342,14 +346,15 @@ public class SqliteTest {
 
     @AfterClass
     public static void tearDown() {
-        try {
-            conn.close();
-        } catch (SQLException e) {
-            log.error(e.getMessage(), e);
-        }
-        File db = new File(dbFile);
-        if (db.exists()) {
-            db.delete();
-        }
+        dbKeys.forEach(dbKey -> {
+            try {
+                Connection conn = DbAssertOptions.getGlobal().getFactory().getConnectionByDbKey(dbKey);
+                SqlUtils.deleteTable(conn, TestConstants.DEFAULT_TABLE_NAME);
+                SqlUtils.deleteDbFileIfSqlite(conn);
+            } catch (Throwable t) {
+                log.error(t.getMessage(), t);
+            }
+        });
     }
+
 }
