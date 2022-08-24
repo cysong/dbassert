@@ -16,20 +16,28 @@ import java.sql.SQLException;
  */
 public class TestUtils {
 
-    public static void initDb(Connection conn) throws SQLException, IOException {
+    public static void initDb(Connection conn) {
         InputStream is = Thread.currentThread().getContextClassLoader().getResourceAsStream(TestConstants.DEFAULT_SQL_FILE);
         assert is != null;
         SqlUtils.loadSqlScript(conn, is);
-        is.close();
+        try {
+            is.close();
+        } catch (IOException e) {
+            throw new RuntimeException(e);
+        }
     }
 
-    public static long getTotalRowsOfTable(Connection conn, String tableName) throws SQLException {
-        ResultSet rs = conn.prepareStatement("select count(*) count from " + tableName).executeQuery();
+    public static long getTotalRowsOfTable(Connection conn, String tableName) {
         long count = 0;
-        while (rs.next()) {
-            count = rs.getLong("count");
+        try {
+            ResultSet rs = conn.prepareStatement("select count(*) count from " + tableName).executeQuery();
+            while (rs.next()) {
+                count = rs.getLong("count");
+            }
+            rs.close();
+        } catch (SQLException e) {
+            throw new RuntimeException(e);
         }
-        rs.close();
         return count;
     }
 
