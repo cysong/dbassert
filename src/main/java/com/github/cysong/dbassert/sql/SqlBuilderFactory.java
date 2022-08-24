@@ -22,7 +22,7 @@ public class SqlBuilderFactory {
                 return sqlBuilder;
             }
         }
-        throw new SqlBuilderNotFoundException("SqlBuilder for db %s not found");
+        throw new SqlBuilderNotFoundException(String.format("SqlBuilder for db %s not found", dbProductName));
     }
 
 }
