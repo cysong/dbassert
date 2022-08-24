@@ -341,7 +341,8 @@ public class DbAssertTest {
 
     @AfterClass
     public static void tearDown() {
-        dbKeys.forEach(dbKey -> {
+        Throwable throwable = null;
+        for (String dbKey : dbKeys) {
             try {
                 Connection conn = DbAssertOptions.getGlobal().getFactory().getConnectionByDbKey(dbKey);
                 if (SqlUtils.isSqlite(conn)) {
@@ -351,8 +352,14 @@ public class DbAssertTest {
                 }
             } catch (Throwable t) {
                 log.error(t.getMessage(), t);
+                if (throwable == null) {
+                    throwable = t;
+                }
             }
-        });
+        }
+        if (throwable != null) {
+            Assert.fail(throwable.getMessage(), throwable);
+        }
     }
 
 }
