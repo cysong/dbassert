@@ -3,18 +3,25 @@ package com.github.cysong.dbassert.mysql;
 import com.github.cysong.dbassert.DbAssert;
 import com.github.cysong.dbassert.TestConstants;
 import com.github.cysong.dbassert.TestUtils;
+import com.github.cysong.dbassert.assertion.AssertionExecutor;
 import com.github.cysong.dbassert.option.DbAssertOptions;
+import com.github.cysong.dbassert.utitls.SqlUtils;
 import com.github.cysong.dbassert.utitls.Utils;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.testng.Assert;
 import org.testng.annotations.AfterClass;
 import org.testng.annotations.BeforeClass;
+import org.testng.annotations.DataProvider;
 import org.testng.annotations.Test;
 
-import java.io.IOException;
 import java.sql.Connection;
 import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Iterator;
+import java.util.List;
+import java.util.stream.Collectors;
 
 /**
  * MySql testcases
@@ -22,22 +29,36 @@ import java.util.Arrays;
  * @author cysong
  * @date 2022/08/22 15:50
  */
+@Test(dataProvider = MySqlTest.DB_PROVIDER)
 public class MySqlTest {
-    private static final String dbKey = "mysql";
+    private static final Logger log = LoggerFactory.getLogger(AssertionExecutor.class);
+    public static final String DB_PROVIDER = "dbProvider";
+    private static final List<String> dbKeys = Arrays.asList("sqlite", "mysql");
 
-    @BeforeClass
-    public static void setup() throws SQLException, IOException {
+    @DataProvider(name = DB_PROVIDER, parallel = true)
+    public Iterator<Object[]> dbProvider() {
+        return dbKeys.stream().map(dbKey -> new Object[]{dbKey})
+                .collect(Collectors.toList())
+                .iterator();
+    }
+
+    @BeforeClass()
+    public void setup() {
+        dbKeys.forEach(dbKey -> this.initDbByKey(dbKey));
+    }
+
+    private void initDbByKey(String dbKey) {
         Connection conn = DbAssertOptions.getGlobal().getFactory().getConnectionByDbKey(dbKey);
         TestUtils.initDb(conn);
         try {
             conn.close();
         } catch (SQLException e) {
-            e.printStackTrace();
+            throw new RuntimeException(e);
         }
     }
 
-    @Test(timeOut = 1000)
-    public void testNotRetry() {
+    @Test(dataProvider = DB_PROVIDER, timeOut = 1000)
+    public void testNotRetry(String dbKey) {
         DbAssert.create(dbKey)
                 .retry(false)
                 .table(TestConstants.DEFAULT_TABLE_NAME)
@@ -47,8 +68,7 @@ public class MySqlTest {
                 .run();
     }
 
-    @Test
-    public void testRetry() {
+    public void testRetry(String dbKey) {
         new Thread(() -> {
             Utils.sleep(6000);
             try {
@@ -67,8 +87,7 @@ public class MySqlTest {
         Assert.assertTrue(System.currentTimeMillis() - start > 6000);
     }
 
-    @Test
-    public void testFilter() {
+    public void testFilter(String dbKey) {
         DbAssert.create(dbKey)
                 .table(TestConstants.DEFAULT_TABLE_NAME)
                 .where("name", "alice")
@@ -89,8 +108,7 @@ public class MySqlTest {
                 .run();
     }
 
-    @Test
-    public void testStringColumnAssertion() {
+    public void testStringColumnAssertion(String dbKey) {
         DbAssert.create(dbKey)
                 .table(TestConstants.DEFAULT_TABLE_NAME)
                 .where("id", 1)
@@ -107,8 +125,7 @@ public class MySqlTest {
                 .run();
     }
 
-    @Test
-    public void testIntegerColumnAssertion() {
+    public void testIntegerColumnAssertion(String dbKey) {
         DbAssert.create(dbKey)
                 .table(TestConstants.DEFAULT_TABLE_NAME)
                 .where("id", 1)
@@ -125,8 +142,7 @@ public class MySqlTest {
                 .run();
     }
 
-    @Test
-    public void testFloatColumnAssertion() {
+    public void testFloatColumnAssertion(String dbKey) {
         DbAssert.create(dbKey)
                 .table(TestConstants.DEFAULT_TABLE_NAME)
                 .where("id", 1)
@@ -141,8 +157,7 @@ public class MySqlTest {
                 .run();
     }
 
-    @Test
-    public void testDoubleColumnAssertion() {
+    public void testDoubleColumnAssertion(String dbKey) {
         DbAssert.create(dbKey)
                 .table(TestConstants.DEFAULT_TABLE_NAME)
                 .where("id", 1)
@@ -157,8 +172,7 @@ public class MySqlTest {
                 .run();
     }
 
-    @Test
-    public void testBooleanColumnAssertion() {
+    public void testBooleanColumnAssertion(String dbKey) {
         DbAssert.create(dbKey)
                 .table(TestConstants.DEFAULT_TABLE_NAME)
                 .where("id", 1)
@@ -180,8 +194,7 @@ public class MySqlTest {
                 .run();
     }
 
-    @Test
-    public void testInCondition() {
+    public void testInCondition(String dbKey) {
         DbAssert.create(dbKey)
                 .table(TestConstants.DEFAULT_TABLE_NAME)
                 .where("id", 1)
@@ -191,8 +204,7 @@ public class MySqlTest {
                 .run();
     }
 
-    @Test
-    public void testMatches() {
+    public void testMatches(String dbKey) {
         DbAssert.create(dbKey)
                 .table(TestConstants.DEFAULT_TABLE_NAME)
                 .where("id", 1)
@@ -207,8 +219,7 @@ public class MySqlTest {
                 .run();
     }
 
-    @Test
-    public void testListAssertion() {
+    public void testListAssertion(String dbKey) {
         DbAssert.create(dbKey)
                 .table(TestConstants.DEFAULT_TABLE_NAME)
                 .where("gender", "M")
@@ -257,8 +268,7 @@ public class MySqlTest {
                 .run();
     }
 
-    @Test
-    public void testRowsAssertion() throws SQLException {
+    public void testRowsAssertion(String dbKey) throws SQLException {
         Connection conn = DbAssertOptions.getGlobal().getFactory().getConnectionByDbKey(dbKey);
         long totalRows = TestUtils.getTotalRowsOfTable(conn, TestConstants.DEFAULT_TABLE_NAME);
         DbAssert.create(dbKey)
@@ -275,8 +285,7 @@ public class MySqlTest {
                 .run();
     }
 
-    @Test
-    public void testCountAssertion() {
+    public void testCountAssertion(String dbKey) {
         DbAssert.create(dbKey)
                 .table(TestConstants.DEFAULT_TABLE_NAME)
                 .where("gender", "M")
@@ -285,8 +294,7 @@ public class MySqlTest {
                 .run();
     }
 
-    @Test
-    public void testDistinctCountAssertion() {
+    public void testDistinctCountAssertion(String dbKey) {
         DbAssert.create(dbKey)
                 .table(TestConstants.DEFAULT_TABLE_NAME)
                 .col("gender")
@@ -300,8 +308,7 @@ public class MySqlTest {
                 .run();
     }
 
-    @Test
-    public void testSuccessIfNotFound() {
+    public void testSuccessIfNotFound(String dbKey) {
         DbAssert.create(dbKey)
                 .table(TestConstants.DEFAULT_TABLE_NAME)
                 .retry(false)
@@ -311,8 +318,8 @@ public class MySqlTest {
                 .run();
     }
 
-    @Test(expectedExceptions = AssertionError.class)
-    public void testFailIfNotFound() {
+    @Test(dataProvider = DB_PROVIDER, expectedExceptions = AssertionError.class)
+    public void testFailIfNotFound(String dbKey) {
         DbAssert.create(dbKey)
                 .table(TestConstants.DEFAULT_TABLE_NAME)
                 .retry(false)
@@ -323,7 +330,7 @@ public class MySqlTest {
     }
 
     @Test
-    public void testAggregateAssertion() {
+    public void testAggregateAssertion(String dbKey) {
         DbAssert.create(dbKey)
                 .table(TestConstants.DEFAULT_TABLE_NAME)
                 .where("name", "bob")
@@ -341,9 +348,16 @@ public class MySqlTest {
     }
 
     @AfterClass
-    public static void tearDown() throws SQLException {
-        Connection conn = DbAssertOptions.getGlobal().getFactory().getConnectionByDbKey(dbKey);
-        conn.prepareStatement(String.format("drop table if exists %s cascade", TestConstants.DEFAULT_TABLE_NAME)).executeUpdate();
+    public static void tearDown() {
+        dbKeys.forEach(dbKey -> {
+            try {
+                Connection conn = DbAssertOptions.getGlobal().getFactory().getConnectionByDbKey(dbKey);
+                SqlUtils.deleteTable(conn, TestConstants.DEFAULT_TABLE_NAME);
+                SqlUtils.deleteDbFileIfSqlite(conn);
+            } catch (Throwable t) {
+                log.error(t.getMessage(), t);
+            }
+        });
     }
 
 }
