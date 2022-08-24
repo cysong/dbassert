@@ -225,7 +225,11 @@ public class SqliteTest {
                 .listNotEqual(Arrays.asList("alice"))
                 .listContains(Arrays.asList("bob"))
                 .listNotContain(Arrays.asList("alice"))
+                .listContains("bob")
                 .listContainsAny(Arrays.asList("alice", "bob"))
+                .listContainsAny("carl")
+                .listNotContain("alice")
+                .listNotContain(1)
                 .col("id")
                 .listIsOrderedAsc()
                 .listMatches(list -> list.size() == 2)
@@ -243,8 +247,14 @@ public class SqliteTest {
                         add(null);
                     }
                 })
-                .listNotContain(Arrays.asList(1))
+                .listContains(20)
+                .listContains(null)
                 .listContainsAny(Arrays.asList(1, null))
+                .listContainsAny(20)
+                .listContainsAny(null)
+                .listNotContain(Arrays.asList(1))
+                .listNotContain(1)
+                .listNotContain("20")
                 .run();
     }
 

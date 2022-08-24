@@ -303,6 +303,9 @@ public class ConditionTester {
             return false;
         }
         List<?> aList = (List) actual;
+        if (!(expected instanceof Iterable)) {
+            return aList.contains(expected);
+        }
         Iterator<?> e = ((Iterable<?>) expected).iterator();
         while (e.hasNext()) {
             if (!aList.contains(e.next())) {
@@ -317,6 +320,9 @@ public class ConditionTester {
             return true;
         }
         List<?> aList = (List) actual;
+        if (!(expected instanceof Iterable)) {
+            return !aList.contains(expected);
+        }
         Iterator<?> e = ((Iterable<?>) expected).iterator();
         while (e.hasNext()) {
             if (aList.contains(e.next())) {
@@ -331,6 +337,9 @@ public class ConditionTester {
             return false;
         }
         List<?> aList = (List) actual;
+        if (!(expected instanceof Iterable)) {
+            return aList.contains(expected);
+        }
         Iterator<?> e = ((Iterable<?>) expected).iterator();
         while (e.hasNext()) {
             if (aList.contains(e.next())) {

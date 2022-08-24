@@ -442,7 +442,7 @@ public class DbAssert {
      * @author cysong
      * @date 2022/8/22 16:48
      **/
-    public DbAssert in(Iterable expected) {
+    public DbAssert in(Iterable<?> expected) {
         assert expected != null;
         this.addCondition(Comparator.IN, expected);
         return this;
@@ -456,7 +456,7 @@ public class DbAssert {
      * @author cysong
      * @date 2022/8/22 16:49
      **/
-    public DbAssert notIn(Iterable expected) {
+    public DbAssert notIn(Iterable<?> expected) {
         this.addCondition(Comparator.NOT_IN, expected);
         return this;
     }
@@ -495,7 +495,7 @@ public class DbAssert {
      * @author cysong
      * @date 2022/8/22 16:51
      **/
-    public DbAssert matches(Predicate predicate) {
+    public DbAssert matches(Predicate<?> predicate) {
         assert predicate != null;
         this.addCondition(Comparator.MATCHES, predicate);
         return this;
@@ -509,7 +509,7 @@ public class DbAssert {
      * @author cysong
      * @date 2022/8/22 16:52
      **/
-    public DbAssert notMatch(Predicate predicate) {
+    public DbAssert notMatch(Predicate<?> predicate) {
         assert predicate != null;
         this.addCondition(Comparator.NOT_MATCH, predicate);
         return this;
@@ -542,7 +542,7 @@ public class DbAssert {
     /**
      * List of column(specified by col()) values is expected has the size of expected
      *
-     * @param expected
+     * @param expected expected value
      * @return com.github.cysong.dbassert.DbAssert
      * @author cysong
      * @date 2022/8/23 16:03
@@ -555,12 +555,12 @@ public class DbAssert {
     /**
      * All column(specified by col()) values is expected equal to expected(at the order of returned)
      *
-     * @param expected
+     * @param expected expected value
      * @return com.github.cysong.dbassert.DbAssert
      * @author cysong
      * @date 2022/8/23 16:04
      **/
-    public DbAssert listEquals(Iterable expected) {
+    public DbAssert listEquals(Iterable<?> expected) {
         this.addListCondition(Comparator.LIST_EQUALS, expected);
         return this;
     }
@@ -568,12 +568,12 @@ public class DbAssert {
     /**
      * All column(specified by col()) values is expected not equal to expected(at the order of returned)
      *
-     * @param expected
+     * @param expected expected value
      * @return com.github.cysong.dbassert.DbAssert
      * @author cysong
      * @date 2022/8/23 16:04
      **/
-    public DbAssert listNotEqual(Iterable expected) {
+    public DbAssert listNotEqual(Iterable<?> expected) {
         this.addListCondition(Comparator.LIST_NOT_EQUAL, expected);
         return this;
     }
@@ -581,12 +581,12 @@ public class DbAssert {
     /**
      * All column(specified by col()) values is expected equal to expected(at any order)
      *
-     * @param expected
+     * @param expected expected value
      * @return com.github.cysong.dbassert.DbAssert
      * @author cysong
      * @date 2022/8/23 16:05
      **/
-    public DbAssert listEqualAtAnyOrder(Iterable expected) {
+    public DbAssert listEqualAtAnyOrder(Iterable<?> expected) {
         this.addListCondition(Comparator.LIST_EQUALS_AT_ANY_ORDER, expected);
         return this;
     }
@@ -594,12 +594,12 @@ public class DbAssert {
     /**
      * All column(specified by col()) values is expected contains all elements of expected
      *
-     * @param expected
+     * @param expected expected value
      * @return com.github.cysong.dbassert.DbAssert
      * @author cysong
      * @date 2022/8/23 16:06
      **/
-    public DbAssert listContains(Iterable expected) {
+    public DbAssert listContains(Object expected) {
         this.addListCondition(Comparator.LIST_CONTAINS, expected);
         return this;
     }
@@ -607,12 +607,12 @@ public class DbAssert {
     /**
      * All column(specified by col()) values is expected not contains any element of expected(at any order)
      *
-     * @param expected
+     * @param expected expected value
      * @return com.github.cysong.dbassert.DbAssert
      * @author cysong
      * @date 2022/8/23 16:07
      **/
-    public DbAssert listNotContain(Iterable expected) {
+    public DbAssert listNotContain(Object expected) {
         this.addListCondition(Comparator.LIST_NOT_CONTAIN, expected);
         return this;
     }
@@ -620,12 +620,12 @@ public class DbAssert {
     /**
      * All column(specified by col()) values is expected contains any elements of expected
      *
-     * @param expected
+     * @param expected expected value
      * @return com.github.cysong.dbassert.DbAssert
      * @author cysong
      * @date 2022/8/23 16:08
      **/
-    public DbAssert listContainsAny(Iterable expected) {
+    public DbAssert listContainsAny(Object expected) {
         this.addListCondition(Comparator.LIST_CONTAINS_ANY, expected);
         return this;
     }
@@ -657,7 +657,7 @@ public class DbAssert {
     /**
      * List of column(specified by col()) values is expected matches predicate
      *
-     * @param predicate
+     * @param predicate predicate to test
      * @return com.github.cysong.dbassert.DbAssert
      * @author cysong
      * @date 2022/8/23 16:12
@@ -670,7 +670,7 @@ public class DbAssert {
     /**
      * List of column(specified by col()) values is expected not match predicate
      *
-     * @param predicate
+     * @param predicate predicate to test
      * @return com.github.cysong.dbassert.DbAssert
      * @author cysong
      * @date 2022/8/23 16:13
