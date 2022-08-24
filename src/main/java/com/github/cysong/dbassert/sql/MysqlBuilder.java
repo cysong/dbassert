@@ -28,8 +28,8 @@ public class MysqlBuilder extends AbstractSqlBuilder {
         //select and where statements
         StringBuilder sb = new StringBuilder("select %s from ");
         sb.append(getQuotedFullTableName());
-        sb.append(" where 1");
         if (Utils.isNotEmpty(assertion.getFilters())) {
+            sb.append(" where 1");
             for (AbstractFilter filter : assertion.getFilters()) {
                 sb.append(" and ");
                 buildFilterStatement(filter, sb);
@@ -51,15 +51,14 @@ public class MysqlBuilder extends AbstractSqlBuilder {
 
         //limit statements
         sb.append(" limit ");
-        if (assertion.getStartIndex() > 1) {
+        if (assertion.getStartIndex() > 0) {
             sb.append(assertion.getStartIndex()).append(",");
         }
         sb.append(assertion.getPageSize());
-        String sql = sb.toString();
 
         //build detail sql
         if (Utils.isNotEmpty(result.getColumnSet())) {
-            result.setDetailSql(String.format(sql,
+            result.setDetailSql(String.format(sb.toString(),
                     result.getColumnSet().stream().map(this::quotedIdentifier)
                             .collect(Collectors.joining(","))
             ));
@@ -71,7 +70,8 @@ public class MysqlBuilder extends AbstractSqlBuilder {
         if (Utils.isNotEmpty(result.getWrapAggColumns())) {
             aggStatement.append(",").append(String.join(",", result.getWrapAggColumns()));
         }
-        result.setAggregateSql(String.format(sql, aggStatement));
+        String aggSql = "select " + aggStatement + " from (" + (String.format(sb.toString(), "*")) + ") a";
+        result.setAggregateSql(aggSql);
     }
 
     @Override
