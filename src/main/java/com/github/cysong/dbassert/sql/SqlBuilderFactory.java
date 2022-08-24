@@ -14,7 +14,7 @@ import java.util.ServiceLoader;
 public class SqlBuilderFactory {
     private static final ServiceLoader<SqlBuilder> loader = ServiceLoader.load(SqlBuilder.class);
 
-    public static SqlBuilder getSqlBuilder(String dbProductName) {
+    public static synchronized SqlBuilder getSqlBuilder(String dbProductName) {
         Iterator<SqlBuilder> it = loader.iterator();
         while (it.hasNext()) {
             SqlBuilder sqlBuilder = it.next();
