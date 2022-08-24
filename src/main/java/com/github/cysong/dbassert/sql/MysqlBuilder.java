@@ -71,7 +71,7 @@ public class MysqlBuilder extends AbstractSqlBuilder {
 
     @Override
     public boolean match(String dbProductName) {
-        return "MySql".equalsIgnoreCase(dbProductName) || "Sqlite".equalsIgnoreCase(dbProductName);
+        return "MySQL".equalsIgnoreCase(dbProductName) || "Sqlite".equalsIgnoreCase(dbProductName);
     }
 
     @Override
