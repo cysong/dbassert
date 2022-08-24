@@ -62,7 +62,7 @@ public class DbAssertTest {
 
     public void testRetry(String dbKey) {
         new Thread(() -> {
-            Utils.sleep(6000);
+            Utils.sleep(4000);
             try {
                 Connection conn = DbAssertOptions.getGlobal().getFactory().getConnectionByDbKey(dbKey);
                 conn.prepareStatement("update person set name = 'cole' where id=3").executeUpdate();
@@ -72,11 +72,36 @@ public class DbAssertTest {
         }).start();
         long start = System.currentTimeMillis();
         DbAssert.create(dbKey)
+                .retryInterval(1000)
+                .retryTimes(6)
                 .table(TestConstants.DEFAULT_TABLE_NAME)
                 .where("id", 3)
                 .col("name").as("person name").isEqual("cole")
                 .run();
-        Assert.assertTrue(System.currentTimeMillis() - start > 6000);
+        long duration = System.currentTimeMillis() - start;
+        Assert.assertTrue(duration > 4000 && duration < 6000);
+    }
+
+    public void testDelay(String dbKey) {
+        long start = System.currentTimeMillis();
+        DbAssert.create(dbKey)
+                .delay(3000)
+                .table(TestConstants.DEFAULT_TABLE_NAME)
+                .where("id", 1)
+                .col("name").isEqual("alice")
+                .run();
+        Assert.assertTrue(System.currentTimeMillis() - start > 3000);
+    }
+
+    public void testPaging(String dbKey) {
+        DbAssert.create(dbKey)
+                .startIndex(1)
+                .table(TestConstants.DEFAULT_TABLE_NAME)
+                .rowsEqual(2)
+                .col("name")
+                .countEquals(2)
+                .listNotContain("alice")
+                .run();
     }
 
     public void testFilter(String dbKey) {
