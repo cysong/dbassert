@@ -330,8 +330,14 @@ public class SqliteTest {
                 .col("name")
                 .countEquals(1)
                 .countLessThan(2)
+                .countLessThanOrEqual(1)
+                .countLessThanOrEqual(2)
                 .countGreaterThan(0)
-                .countBetween(0, 2);
+                .countGreaterThanOrEqual(0)
+                .countGreaterThanOrEqual(0)
+                .countBetween(0, 2)
+                .countBetween(0, true, 1, false)
+                .run();
     }
 
     @AfterClass
