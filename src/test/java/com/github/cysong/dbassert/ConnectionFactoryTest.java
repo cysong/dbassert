@@ -7,9 +7,7 @@ import org.testng.annotations.BeforeClass;
 import org.testng.annotations.Test;
 
 import java.io.File;
-import java.io.IOException;
 import java.sql.Connection;
-import java.sql.SQLException;
 
 /**
  * ConnectionFactory testcases
@@ -21,20 +19,15 @@ public class ConnectionFactoryTest {
     private static String dbFile = "test1.db";
 
     @BeforeClass
-    public static void setup() throws SQLException, IOException {
+    public static void setup() {
         Connection conn = DbAssertOptions.getGlobal().getFactory().getConnectionByDbKey("test1");
         TestUtils.initDb(conn);
-        try {
-            conn.close();
-        } catch (SQLException e) {
-            e.printStackTrace();
-        }
     }
 
     @Test
     public void testConnectionFactory() {
         DbAssert.create("test1")
-                .table("person")
+                .table(TestConstants.DEFAULT_TABLE_NAME)
                 .where("id", 1)
                 .col("name")
                 .isEqual("alice")
