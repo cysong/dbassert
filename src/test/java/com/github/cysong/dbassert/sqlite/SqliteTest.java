@@ -291,6 +291,12 @@ public class SqliteTest {
                 .table(TestConstants.DEFAULT_TABLE_NAME)
                 .col("gender")
                 .distinctCountEqual(2)
+                .distinctCountLessThan(3)
+                .distinctCountLessThanOrEqual(2)
+                .distinctCountGreaterThan(2)
+                .distinctCountGreaterThanOrEqual(2)
+                .distinctCountBetween(1, 2)
+                .distinctCountBetween(1, true, 2, false)
                 .run();
     }
 
