@@ -31,7 +31,7 @@ public class Assertion {
     private long delay;
     private boolean failIfNotFound;
 
-    private int startIndex = 1;
+    private int startIndex = Constants.START_INDEX;
     private int pageSize;
 
     private List<AbstractFilter> filters;
@@ -203,7 +203,7 @@ public class Assertion {
     }
 
     public void setStartIndex(int startIndex) {
-        assert startIndex > 0;
+        assert startIndex >= 0;
         this.startIndex = startIndex;
     }
 
