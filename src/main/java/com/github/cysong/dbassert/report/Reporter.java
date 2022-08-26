@@ -54,5 +54,5 @@ public interface Reporter {
      * @author cysong
      * @date 2022/8/26 10:49
      **/
-    void addAttachment(String name, String type, String content);
+    void addAttachment(String name, String type, String content, String extension);
 }
