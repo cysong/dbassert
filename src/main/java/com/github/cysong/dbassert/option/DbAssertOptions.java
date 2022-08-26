@@ -3,6 +3,7 @@ package com.github.cysong.dbassert.option;
 import com.github.cysong.dbassert.constant.Constants;
 import com.github.cysong.dbassert.datasource.ConnectionFactory;
 import com.github.cysong.dbassert.datasource.DefaultConnectionFactory;
+import com.github.cysong.dbassert.report.Reporter;
 import com.github.cysong.dbassert.utitls.Utils;
 
 /**
@@ -53,6 +54,8 @@ public class DbAssertOptions {
      * test database connection timeout(seconds) when valid
      **/
     private int testConnectionTimeout = Constants.TEST_CONNECTION_TIMEOUT;
+
+    private Reporter reporter;
 
 
     public static synchronized DbAssertOptions getGlobal() {
@@ -158,6 +161,14 @@ public class DbAssertOptions {
     public DbAssertOptions testConnectionTimeout(int testConnectionTimeout) {
         this.testConnectionTimeout = testConnectionTimeout;
         return this;
+    }
+
+    public Reporter getReporter() {
+        return reporter;
+    }
+
+    public void reporter(Reporter reporter) {
+        this.reporter = reporter;
     }
 
     private synchronized void buildDefaultConnectionFactory() {
