@@ -50,6 +50,7 @@ public abstract class AbstractSqlBuilder implements SqlBuilder {
             List<String> wrapCountColumns = aggColumns.values().stream()
                     .flatMap(List::stream)
                     .map(this::getAggregateStatement)
+                    .distinct()
                     .collect(Collectors.toList());
             result.setAggColumns(aggColumns);
             result.setWrapAggColumns(wrapCountColumns);
