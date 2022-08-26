@@ -234,6 +234,7 @@ public class AssertionExecutor {
         if (sqlResult.getAggregateSql() != null) {
             System.out.println(sqlResult.getAggregateSql());
         }
+        System.out.println("==================== sql ====================");
     }
 
     private void printRetryLog(int loopTimes) {
