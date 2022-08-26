@@ -6,6 +6,8 @@ import com.github.cysong.dbassert.expression.CompositeCondition;
 import com.github.cysong.dbassert.expression.Condition;
 
 import java.text.MessageFormat;
+import java.util.Arrays;
+import java.util.List;
 
 /**
  * comparator for assertion
@@ -83,5 +85,10 @@ public enum Comparator {
             return MessageFormat.format(format, alias, expected, actual, com.getProperty());
         }
         return MessageFormat.format(format, alias, expected, actual);
+    }
+
+    public static List<Comparator> noArgs() {
+        return Arrays.asList(NULL, NOT_NULL, IS_TRUE, IS_FALSE, LIST_IS_EMPTY, LIST_NOT_EMPTY,
+                LIST_IS_ORDERED_ASC, LIST_IS_ORDERED_DESC);
     }
 }
