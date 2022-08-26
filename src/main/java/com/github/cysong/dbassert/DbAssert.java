@@ -12,7 +12,6 @@ import com.github.cysong.dbassert.option.DbAssertOptions;
 import com.github.cysong.dbassert.utitls.Utils;
 
 import java.sql.Connection;
-import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.function.Predicate;
@@ -1070,12 +1069,8 @@ public class DbAssert {
         if (Utils.isEmpty(assertion.getVerifies()) && Utils.isEmpty(assertion.getRowVerifies())) {
             throw new ConfigurationException("At least one verify condition required");
         }
-        try {
-            AssertionExecutor.create(this.assertion).run();
-        } catch (SQLException e) {
-            throw new RuntimeException("Assertion error: " + e.getMessage(), e);
-        }
-    }
 
+        AssertionExecutor.create(this.assertion).run();
+    }
 
 }

@@ -5,6 +5,9 @@ import com.github.cysong.dbassert.constant.Constants;
 import com.github.cysong.dbassert.expression.AggregateCondition;
 import com.github.cysong.dbassert.expression.Condition;
 import com.github.cysong.dbassert.expression.ListCondition;
+import com.github.cysong.dbassert.option.DbAssertOptions;
+import com.github.cysong.dbassert.report.Reporter;
+import com.github.cysong.dbassert.report.Status;
 import com.github.cysong.dbassert.sql.SqlBuilderSelector;
 import com.github.cysong.dbassert.sql.SqlResult;
 import com.github.cysong.dbassert.utitls.Utils;
@@ -42,70 +45,84 @@ public class AssertionExecutor {
      * @author cysong
      * @date 2022/8/23 9:25
      **/
-    public void run() throws SQLException {
-        SqlResult result = SqlBuilderSelector.getSqlBuilder(assertion).build();
+    public void run() {
+        startStep();
+        try {
+            SqlResult result = SqlBuilderSelector.getSqlBuilder(assertion).build();
+            printSql(result);
 
-        printSql(result);
-
-        if (this.assertion.getDelay() > 0) {
-            Utils.sleep(this.assertion.getDelay());
-        }
-
-        //total loop times
-        int totalLoop = assertion.isRetry() ? assertion.getRetryTimes() + 1 : 1;
-        int loop = 1;
-        long timestamp = System.currentTimeMillis();
-        do {
-            printRetryLog(loop);
-            if (loop > 1) {
-                long waitMills = timestamp + assertion.getRetryInterval() - System.currentTimeMillis();
-                if (waitMills > 0) {
-                    Utils.sleep(waitMills);
-                }
+            if (this.assertion.getDelay() > 0) {
+                Utils.sleep(this.assertion.getDelay());
             }
-            timestamp = System.currentTimeMillis();
 
-            boolean isFinal = loop == totalLoop;
+            //total loop times
+            int totalLoop = assertion.isRetry() ? assertion.getRetryTimes() + 1 : 1;
+            int loop = 1;
+            long timestamp = System.currentTimeMillis();
+            printSummaryLog();
+            do {
+                if (loop > 1) {
+                    printRetryLog(loop - 1);
+                    long waitMills = timestamp + assertion.getRetryInterval() - System.currentTimeMillis();
+                    if (waitMills > 0) {
+                        Utils.sleep(waitMills);
+                    }
+                }
+                timestamp = System.currentTimeMillis();
 
-            String aggSql = result.getAggregateSql();
-            ResultSet aggRs = assertion.getConn().prepareStatement(aggSql).executeQuery();
-
-            aggRs.next();
-            long totalRows = aggRs.getLong(Constants.COUNT_ROWS_LABEL);
-            if (totalRows == 0) {
-                aggRs.close();
-                if (isFinal && assertion.isFailIfNotFound()) {
-                    throw new AssertionError("Data records not found");
+                if (verify(loop == totalLoop, result)) {
+                    log.info("Assert success");
+                    endStep(Status.PASSED);
+                    break;
                 } else {
                     continue;
                 }
+            } while (loop++ < totalLoop);
+        } catch (Throwable throwable) {
+            endStep(throwable);
+            if (throwable instanceof RuntimeException) {
+                throw (RuntimeException) throwable;
             }
+            throw new RuntimeException(throwable);
+        }
+    }
 
-            //verify total rows
-            if (!verifyRows(totalRows, isFinal)) {
-                aggRs.close();
-                continue;
+    private boolean verify(boolean isFinal, SqlResult result) throws SQLException {
+        String aggSql = result.getAggregateSql();
+        ResultSet aggRs = assertion.getConn().prepareStatement(aggSql).executeQuery();
+
+        aggRs.next();
+        long totalRows = aggRs.getLong(Constants.COUNT_ROWS_LABEL);
+        if (totalRows == 0) {
+            aggRs.close();
+            if (isFinal && assertion.isFailIfNotFound()) {
+                throw new AssertionError("Data records not found");
             }
+            return false;
+        }
 
-            //verify aggregate columns
-            if (!verifyAggregates(aggRs, result.getAggColumns(), isFinal)) {
-                aggRs.close();
-                continue;
+        //verify total rows
+        if (!verifyRows(totalRows, isFinal)) {
+            aggRs.close();
+            return false;
+        }
+
+        //verify aggregate columns
+        if (!verifyAggregates(aggRs, result.getAggColumns(), isFinal)) {
+            aggRs.close();
+            return false;
+        }
+
+        //verify columns details
+        String detailSql = result.getDetailSql();
+        if (detailSql != null) {
+            ResultSet detailRs = assertion.getConn().prepareStatement(detailSql).executeQuery();
+            if (!verifyDetails(detailRs, result, isFinal)) {
+                detailRs.close();
+                return false;
             }
-
-            //verify columns details
-            String detailSql = result.getDetailSql();
-            if (detailSql != null) {
-                ResultSet detailRs = assertion.getConn().prepareStatement(detailSql).executeQuery();
-                if (!verifyDetails(detailRs, result, isFinal)) {
-                    detailRs.close();
-                    continue;
-                }
-            }
-
-            log.info("Assert success");
-            break;
-        } while (loop++ < totalLoop);
+        }
+        return true;
     }
 
     /**
@@ -237,15 +254,65 @@ public class AssertionExecutor {
         System.out.println("==================== sql ====================");
     }
 
-    private void printRetryLog(int loopTimes) {
+    private void printSummaryLog() {
         if (assertion.isRetry()) {
-            if (loopTimes > 1) {
-                log.info("Retry {}/{}...", loopTimes - 1, assertion.getRetryTimes());
-            } else {
-                log.info("Assert with total {} retries, interval {}ms", assertion.getRetryTimes(), assertion.getRetryInterval());
-            }
+            log.info("Assert with total {} retries, interval {}ms", assertion.getRetryTimes(), assertion.getRetryInterval());
         } else {
             log.info("Assert without retry...");
+        }
+    }
+
+    private void printRetryLog(int retryTimes) {
+        log.info("Retry {}/{}...", retryTimes, assertion.getRetryTimes());
+    }
+
+    private void startStep() {
+        Reporter reporter = DbAssertOptions.getGlobal().getReporter();
+        if (reporter != null) {
+            reporter.startStep(Constants.REPORT_STEP_NAME);
+        }
+    }
+
+    private void endStep(Status status) {
+        Reporter reporter = DbAssertOptions.getGlobal().getReporter();
+        if (reporter != null) {
+            reporter.endStep(status);
+        }
+    }
+
+    private void endStep(Throwable throwable) {
+        Reporter reporter = DbAssertOptions.getGlobal().getReporter();
+        if (reporter != null) {
+            reporter.endStep(throwable);
+        }
+    }
+
+    private void addSqlAttachment(SqlResult result) {
+        Reporter reporter = DbAssertOptions.getGlobal().getReporter();
+        StringBuilder content = new StringBuilder();
+        if (reporter != null) {
+            if (result.getDetailSql() != null) {
+                content.append(result.getDetailSql());
+                content.append(System.lineSeparator());
+            }
+            if (result.getAggregateSql() != null) {
+                content.append(result.getAggregateSql());
+            }
+            reporter.addAttachment("sql", content.toString());
+        }
+    }
+
+    private void addAttachment(String name, String content) {
+        Reporter reporter = DbAssertOptions.getGlobal().getReporter();
+        if (reporter != null) {
+            reporter.addAttachment(name, content);
+        }
+    }
+
+    private void addHtmlAttachment(String name, String content) {
+        Reporter reporter = DbAssertOptions.getGlobal().getReporter();
+        if (reporter != null) {
+            reporter.addAttachment(name, "text/html", content);
         }
     }
 

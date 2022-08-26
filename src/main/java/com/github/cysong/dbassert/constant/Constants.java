@@ -24,4 +24,6 @@ public class Constants {
     public static final String COUNT_ROWS_COLUMN = "*";
     public static final String COUNT_ROWS_LABEL = "count";
 
+    public static final String REPORT_STEP_NAME = "DbAssert";
+
 }
