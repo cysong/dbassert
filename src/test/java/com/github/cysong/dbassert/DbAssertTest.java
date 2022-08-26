@@ -2,6 +2,7 @@ package com.github.cysong.dbassert;
 
 import com.github.cysong.dbassert.assertion.AssertionExecutor;
 import com.github.cysong.dbassert.option.DbAssertOptions;
+import com.github.cysong.dbassert.option.DbAssertSetup;
 import com.github.cysong.dbassert.utitls.SqlUtils;
 import com.github.cysong.dbassert.utitls.Utils;
 import org.slf4j.Logger;
@@ -41,6 +42,7 @@ public class DbAssertTest {
 
     @BeforeClass()
     public void setup() {
+        DbAssertSetup.setup().reporter(new AllureReporter());
         dbKeys.forEach(dbKey -> this.initDbByKey(dbKey));
     }
 
@@ -318,7 +320,7 @@ public class DbAssertTest {
                 .distinctCountEqual(2)
                 .distinctCountLessThan(3)
                 .distinctCountLessThanOrEqual(2)
-                .distinctCountGreaterThan(2)
+                .distinctCountGreaterThan(1)
                 .distinctCountGreaterThanOrEqual(2)
                 .distinctCountBetween(1, 2)
                 .distinctCountBetween(1, true, 2, false)

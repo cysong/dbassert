@@ -19,6 +19,9 @@
         <sqlite.version>3.36.0.3</sqlite.version>
         <logback.version>1.2.11</logback.version>
         <mysql.version>8.0.30</mysql.version>
+        <allure.version>2.13.10</allure.version>
+        <aspectj.version>1.8.10</aspectj.version>
+        <surefire.version>3.0.0-M1</surefire.version>
     </properties>
 
     <dependencies>
@@ -62,6 +65,41 @@
             <version>${mysql.version}</version>
             <scope>test</scope>
         </dependency>
+        <dependency>
+            <groupId>io.qameta.allure</groupId>
+            <artifactId>allure-testng</artifactId>
+            <version>${allure.version}</version>
+            <scope>test</scope>
+        </dependency>
     </dependencies>
 
+    <build>
+        <plugins>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-surefire-plugin</artifactId>
+                <version>${surefire.version}</version>
+                <configuration>
+                    <reuseForks>true</reuseForks>
+                    <argLine>
+                        -Xmx512m
+                        -javaagent:"${settings.localRepository}/org/aspectj/aspectjweaver/${aspectj.version}/aspectjweaver-${aspectj.version}.jar"
+                    </argLine>
+                    <systemProperties>
+                        <property>
+                            <name>allure.results.directory</name>
+                            <value>${project.basedir}/target/allure-results</value>
+                        </property>
+                    </systemProperties>
+                </configuration>
+                <dependencies>
+                    <dependency>
+                        <groupId>org.aspectj</groupId>
+                        <artifactId>aspectjweaver</artifactId>
+                        <version>${aspectj.version}</version>
+                    </dependency>
+                </dependencies>
+            </plugin>
+        </plugins>
+    </build>
 </project>
