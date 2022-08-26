@@ -3,9 +3,10 @@ package com.github.cysong.dbassert.utitls;
 import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
-import java.sql.Connection;
-import java.sql.DatabaseMetaData;
-import java.sql.SQLException;
+import java.sql.*;
+import java.util.HashMap;
+import java.util.Map;
+import java.util.function.Function;
 
 /**
  * sql utils
@@ -111,5 +112,33 @@ public class SqlUtils {
      **/
     public static boolean isSqlite(Connection conn) {
         return "Sqlite".equalsIgnoreCase(getDatabaseProductName(conn));
+    }
+
+    /**
+     * 将resultSet当前行的数据转为map
+     *
+     * @param resultSet resultSet
+     * @return java.util.Map<java.lang.String, java.lang.Object>
+     * @author cysong
+     * @date 2022/8/26 16:59
+     **/
+    public static Map<String, Object> convertCurrentRowToMap(ResultSet resultSet) throws SQLException {
+        ResultSetMetaData metaData = resultSet.getMetaData();
+        int colCount = metaData.getColumnCount();
+        Map<String, Object> map = new HashMap<>(colCount);
+        for (int i = 1; i <= colCount; i++) {
+            final int index = i;
+            map.computeIfAbsent(metaData.getColumnLabel(i), new Function<String, Object>() {
+                @Override
+                public Object apply(String s) {
+                    try {
+                        return resultSet.getObject(index);
+                    } catch (SQLException e) {
+                        throw new RuntimeException(e);
+                    }
+                }
+            });
+        }
+        return map;
     }
 }

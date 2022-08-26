@@ -2,14 +2,17 @@ package com.github.cysong.dbassert.assertion;
 
 import com.github.cysong.dbassert.constant.Aggregate;
 import com.github.cysong.dbassert.constant.Constants;
+import com.github.cysong.dbassert.exception.Exceptions;
 import com.github.cysong.dbassert.expression.AggregateCondition;
 import com.github.cysong.dbassert.expression.Condition;
 import com.github.cysong.dbassert.expression.ListCondition;
 import com.github.cysong.dbassert.option.DbAssertOptions;
+import com.github.cysong.dbassert.report.HtmlTableBuilder;
 import com.github.cysong.dbassert.report.Reporter;
 import com.github.cysong.dbassert.report.Status;
 import com.github.cysong.dbassert.sql.SqlBuilderSelector;
 import com.github.cysong.dbassert.sql.SqlResult;
+import com.github.cysong.dbassert.utitls.SqlUtils;
 import com.github.cysong.dbassert.utitls.Utils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -30,6 +33,7 @@ import java.util.Map;
 public class AssertionExecutor {
     private static final Logger log = LoggerFactory.getLogger(AssertionExecutor.class);
     private final Assertion assertion;
+    private AssertResult result;
 
     public static AssertionExecutor create(Assertion assertion) {
         return new AssertionExecutor(assertion);
@@ -37,6 +41,7 @@ public class AssertionExecutor {
 
     private AssertionExecutor(Assertion assertion) {
         this.assertion = assertion;
+        result = AssertResult.create();
     }
 
     /**
@@ -50,6 +55,7 @@ public class AssertionExecutor {
         try {
             SqlResult result = SqlBuilderSelector.getSqlBuilder(assertion).build();
             printSql(result);
+            addSqlAttachment(result);
 
             if (this.assertion.getDelay() > 0) {
                 Utils.sleep(this.assertion.getDelay());
@@ -70,31 +76,32 @@ public class AssertionExecutor {
                 }
                 timestamp = System.currentTimeMillis();
 
-                if (verify(loop == totalLoop, result)) {
+                if (verify(result, loop == totalLoop)) {
                     log.info("Assert success");
+                    addReportDetails();
                     endStep(Status.PASSED);
                     break;
                 } else {
+                    this.result.clearDetails();
                     continue;
                 }
             } while (loop++ < totalLoop);
         } catch (Throwable throwable) {
+            addReportDetails(throwable);
             endStep(throwable);
-            if (throwable instanceof RuntimeException) {
-                throw (RuntimeException) throwable;
-            }
-            throw new RuntimeException(throwable);
+            Exceptions.check(throwable);
         }
     }
 
-    private boolean verify(boolean isFinal, SqlResult result) throws SQLException {
+    private boolean verify(SqlResult result, boolean isFinal) throws SQLException {
         String aggSql = result.getAggregateSql();
         ResultSet aggRs = assertion.getConn().prepareStatement(aggSql).executeQuery();
 
         aggRs.next();
-        long totalRows = aggRs.getLong(Constants.COUNT_ROWS_LABEL);
+        Map<String, Object> rowData = SqlUtils.convertCurrentRowToMap(aggRs);
+        aggRs.close();
+        long totalRows = getTotalRows(rowData.get(Constants.COUNT_ROWS_LABEL));
         if (totalRows == 0) {
-            aggRs.close();
             if (isFinal && assertion.isFailIfNotFound()) {
                 throw new AssertionError("Data records not found");
             }
@@ -103,13 +110,11 @@ public class AssertionExecutor {
 
         //verify total rows
         if (!verifyRows(totalRows, isFinal)) {
-            aggRs.close();
             return false;
         }
 
         //verify aggregate columns
-        if (!verifyAggregates(aggRs, result.getAggColumns(), isFinal)) {
-            aggRs.close();
+        if (!verifyAggregates(rowData, result.getAggColumns(), isFinal)) {
             return false;
         }
 
@@ -139,7 +144,9 @@ public class AssertionExecutor {
             return true;
         }
         for (Condition condition : assertion.getRowVerifies()) {
-            if (!ConditionTester.test(condition.getComparator(), totalRows, condition.getExpected())) {
+            boolean pass = ConditionTester.test(condition.getComparator(), totalRows, condition.getExpected());
+            result.add(Constants.COUNT_ROWS_COLUMN, Aggregate.COUNT, condition.getComparator(), pass, totalRows, condition.getExpected());
+            if (!pass) {
                 doAssert(isFinal, () -> condition.getAssertMessage(totalRows));
                 return false;
             }
@@ -150,28 +157,32 @@ public class AssertionExecutor {
     /**
      * verify aggregate columns
      *
-     * @param rs           result set return by query
+     * @param rowData      aggregate data return by sql query
      * @param aggColumnMap aggregate column map group by column name
      * @param isFinal      determine throw AssertionError or print log when verify fail
      * @return boolean
      * @author cysong
      * @date 2022/8/23 9:31
      **/
-    private boolean verifyAggregates(ResultSet rs, Map<String, List<AggregateCondition>> aggColumnMap, boolean isFinal) throws SQLException {
+    private boolean verifyAggregates(Map<String, Object> rowData, Map<String, List<AggregateCondition>> aggColumnMap, boolean isFinal) throws SQLException {
         if (Utils.isEmpty(aggColumnMap)) {
             return true;
         }
-        while (rs.next()) {
-            for (String col : aggColumnMap.keySet()) {
-                List<AggregateCondition> aggConditions = aggColumnMap.get(col);
-                for (AggregateCondition aggCondition : aggConditions) {
-                    Aggregate aggregate = aggCondition.getAggregate();
-                    String label = aggregate.getWrappedColumnLabel(col);
-                    Object actual = rs.getObject(label);
-                    if (!ConditionTester.test(aggCondition.getComparator(), actual, aggCondition.getExpected())) {
-                        this.doAssert(isFinal, () -> aggCondition.getAssertMessage(actual));
-                        return false;
-                    }
+
+        for (String col : aggColumnMap.keySet()) {
+            List<AggregateCondition> aggConditions = aggColumnMap.get(col);
+            for (AggregateCondition aggCondition : aggConditions) {
+                Aggregate aggregate = aggCondition.getAggregate();
+                String label = aggregate.getWrappedColumnLabel(col);
+                if (!rowData.containsKey(label)) {
+                    throw new RuntimeException(String.format("column data %s not exists", label));
+                }
+                Object actual = rowData.get(label);
+                boolean pass = ConditionTester.test(aggCondition.getComparator(), actual, aggCondition.getExpected());
+                result.add(pass, aggCondition, actual);
+                if (!pass) {
+                    this.doAssert(isFinal, () -> aggCondition.getAssertMessage(actual));
+                    return false;
                 }
             }
         }
@@ -181,18 +192,18 @@ public class AssertionExecutor {
     /**
      * verify column details
      *
-     * @param rs      result set return by query
-     * @param result  sql build result
-     * @param isFinal determine throw AssertionError or print log when verify fail
+     * @param rs        result set return by query
+     * @param sqlResult sql build result
+     * @param isFinal   determine throw AssertionError or print log when verify fail
      * @return boolean
      * @author cysong
      * @date 2022/8/23 9:35
      **/
-    private boolean verifyDetails(ResultSet rs, SqlResult result, boolean isFinal) throws SQLException {
-        Map<String, List<Object>> valueMap = new HashMap<>(result.getColumnSet().size());
-        Map<String, List<Condition>> columnMap = result.getColumns();
+    private boolean verifyDetails(ResultSet rs, SqlResult sqlResult, boolean isFinal) throws SQLException {
+        Map<String, List<Object>> valueMap = new HashMap<>(sqlResult.getColumnSet().size());
+        Map<String, List<Condition>> columnMap = sqlResult.getColumns();
         while (rs.next()) {
-            for (String col : result.getColumnSet()) {
+            for (String col : sqlResult.getColumnSet()) {
                 Object value = rs.getObject(col);
                 valueMap.compute(col, (key, val) -> {
                     if (val == null) {
@@ -203,9 +214,11 @@ public class AssertionExecutor {
                 });
 
                 if (columnMap.containsKey(col)) {
-                    List<Condition> conditions = result.getColumns().get(col);
+                    List<Condition> conditions = sqlResult.getColumns().get(col);
                     for (Condition condition : conditions) {
-                        if (!ConditionTester.test(condition.getComparator(), value, condition.getExpected())) {
+                        boolean pass = ConditionTester.test(condition.getComparator(), value, condition.getExpected());
+                        result.add(pass, condition, value);
+                        if (!pass) {
                             this.doAssert(isFinal, () -> condition.getAssertMessage(value));
                             return false;
                         }
@@ -214,11 +227,13 @@ public class AssertionExecutor {
             }
         }
 
-        Map<String, List<ListCondition>> listColumnMap = result.getListColumns();
+        Map<String, List<ListCondition>> listColumnMap = sqlResult.getListColumns();
         for (String col : listColumnMap.keySet()) {
             List<ListCondition> conditions = listColumnMap.get(col);
             for (ListCondition condition : conditions) {
-                if (!ConditionTester.test(condition.getComparator(), valueMap.get(col), condition.getExpected())) {
+                boolean pass = ConditionTester.test(condition.getComparator(), valueMap.get(col), condition.getExpected());
+                result.add(pass, condition, valueMap.get(col));
+                if (!pass) {
                     this.doAssert(isFinal, () -> condition.getAssertMessage(valueMap.get(col)));
                     return false;
                 }
@@ -266,6 +281,35 @@ public class AssertionExecutor {
         log.info("Retry {}/{}...", retryTimes, assertion.getRetryTimes());
     }
 
+    private long getTotalRows(Object object) {
+        if (object instanceof Long) {
+            return (long) object;
+        } else if (object instanceof Integer) {
+            return (int) object;
+        }
+        return Long.parseLong(object.toString());
+    }
+
+    private void addReportDetails() {
+        addReportDetails(null);
+    }
+
+    private void addReportDetails(Throwable throwable) {
+        if (throwable != null) {
+            addAttachment("Throwable", throwable.getMessage());
+        }
+        List<Detail> details = result.getDetails();
+        if (details.size() == 0) {
+            return;
+        }
+        HtmlTableBuilder builder = new HtmlTableBuilder(null);
+        builder.addTableHeader(Detail.getTableHeader());
+        for (Detail detail : details) {
+            builder.addRowValues(detail.isPass() ? "white" : "red", detail.getTableRow());
+        }
+        addHtmlAttachment("Details", builder.build());
+    }
+
     private void startStep() {
         Reporter reporter = DbAssertOptions.getGlobal().getReporter();
         if (reporter != null) {
@@ -298,7 +342,7 @@ public class AssertionExecutor {
             if (result.getAggregateSql() != null) {
                 content.append(result.getAggregateSql());
             }
-            reporter.addAttachment("sql", content.toString());
+            reporter.addAttachment("Sql", content.toString());
         }
     }
 
@@ -312,7 +356,7 @@ public class AssertionExecutor {
     private void addHtmlAttachment(String name, String content) {
         Reporter reporter = DbAssertOptions.getGlobal().getReporter();
         if (reporter != null) {
-            reporter.addAttachment(name, "text/html", content);
+            reporter.addAttachment(name, "text/html", content, "html");
         }
     }
 
