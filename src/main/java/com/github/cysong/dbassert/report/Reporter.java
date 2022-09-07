@@ -48,9 +48,10 @@ public interface Reporter {
     /**
      * add a attachment to current step
      *
-     * @param name    attachment name
-     * @param type    attachment type(http content type)
-     * @param content attachment content
+     * @param name      attachment name
+     * @param type      attachment type(http content type)
+     * @param content   attachment content
+     * @param extension file extension
      * @author cysong
      * @date 2022/8/26 10:49
      **/
