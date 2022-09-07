@@ -42,10 +42,12 @@ Connection conn=DriverManager.getConnection("jdbc:sqlite::memory:");
         .col("name").as("person name").isEqual("alice")
         .run();
 ```
+更多校验类型见[Comparator](/src/main/java/com/github/cysong/dbassert/constant/Comparator.java)
+，更多的汇总方式见[Aggregate](/src/main/java/com/github/cysong/dbassert/constant/Aggregate.java)
 
 ### 使用ConnectionFactory
 
-DbAssert支持ConnectionFactory自动根据数据库配置文件创建连接，默认的数据配置文件为：database.yml 配置格式如下：
+DbAssert支持ConnectionFactory自动根据数据库配置文件创建连接，默认的数据配置文件为：`database.yml`，配置格式如下：
 
 ```yaml
 - key: sqlite
@@ -57,7 +59,7 @@ DbAssert支持ConnectionFactory自动根据数据库配置文件创建连接，�
   password: dbassert
 ```
 
-使用ConnectionFactory时需要这样调用DbAssert：
+使用`ConnectionFactory`时需要这样调用DbAssert：
 
 ```java
 DbAssert.create(mysql)
@@ -67,7 +69,7 @@ DbAssert.create(mysql)
         .run();
 ```
 
-其中"mysql"为database.yml中配置的数据库key。
+其中`mysql`为`database.yml`中配置的数据库`key`。
 
 ## 高级用法
 
