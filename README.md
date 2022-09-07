@@ -102,4 +102,4 @@ DbAssertSetup.setup()
 
 如果`AllureReporter`无法满足需求，你需要实现自己的Reporter，并按照以上方式配置
 
-更多用法参考测试用例：[DbAssertTest.java](/blob/master/src/test/java/com/github/cysong/dbassert/DbAssertTest.java)
+更多用法参考测试用例：[DbAssertTest.java](/src/test/java/com/github/cysong/dbassert/DbAssertTest.java)
