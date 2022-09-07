@@ -1032,6 +1032,7 @@ public class DbAssert {
         if (currentObject == null || !(currentObject instanceof Column)) {
             throw new IllegalStateException("Must call col method first");
         }
+        assert comparator != null;
         Condition condition = Condition.create(currentObject.getName(), comparator, expected);
         this.currentConditions.add(condition);
         return condition;
@@ -1041,6 +1042,7 @@ public class DbAssert {
         if (currentObject == null || !(currentObject instanceof Column)) {
             throw new IllegalStateException("Must call col method first");
         }
+        assert comparator != null;
         ListCondition condition = ListCondition.create(currentObject.getName(), comparator, expected);
         this.currentConditions.add(condition);
         return condition;
@@ -1050,6 +1052,8 @@ public class DbAssert {
         if (currentObject == null || !(currentObject instanceof Column)) {
             throw new IllegalStateException("Must call col method first");
         }
+        assert aggregate != null;
+        assert comparator != null;
         AggregateCondition condition = AggregateCondition.create(aggregate, currentObject.getName(), comparator, expected);
         this.currentConditions.add(condition);
         return condition;
