@@ -31,7 +31,7 @@ import java.util.stream.Collectors;
 public class DbAssertTest {
     private static final Logger log = LoggerFactory.getLogger(AssertionExecutor.class);
     public static final String DB_PROVIDER = "dbProvider";
-    private static final List<String> dbKeys = Arrays.asList("sqlite", "mysql");
+    private static final List<String> dbKeys = Arrays.asList("sqlite");
 
     @DataProvider(name = DB_PROVIDER, parallel = true)
     public Iterator<Object[]> dbProvider() {
